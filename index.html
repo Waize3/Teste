@@ -2,23 +2,16 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Vingadores: Guerra Infinita</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Filme</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Roboto', sans-serif;
       background-color: #21232d;
       color: #fff;
-      overflow-x: hidden;
-      position: relative;
-      min-height: 100vh;
-      padding-bottom: 60px;
     }
 
     .poster-container {
@@ -37,38 +30,20 @@
     .overlay {
       position: absolute;
       bottom: 0;
-      left: 0;
       width: 100%;
       height: 60%;
-      background: linear-gradient(to top, #21232d, rgba(33, 35, 45, 0));
+      background: linear-gradient(to top, #21232d, transparent);
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
       padding: 20px;
-      z-index: 1;
     }
 
-    h1 {
-      font-size: 2em;
-    }
+    h1 { font-size: 1.8rem; }
+    .info { font-size: 0.95rem; color: #ccc; margin: 5px 0; }
+    .rating { color: gold; font-size: 1.1rem; }
 
-    .info {
-      font-size: 0.95em;
-      color: #ccc;
-      margin: 5px 0 5px;
-    }
-
-    .rating {
-      color: gold;
-      font-size: 1.1em;
-      margin: 5px 0;
-    }
-
-    .description {
-      padding: 20px;
-      font-size: 1em;
-      line-height: 1.6;
-    }
+    .description { padding: 20px; font-size: 1rem; line-height: 1.6; }
 
     .section {
       padding: 0 20px;
@@ -76,33 +51,27 @@
     }
 
     .section h2 {
-      font-size: 1.3em;
+      font-size: 1.3rem;
       margin-bottom: 10px;
       border-bottom: 1px solid #333;
       padding-bottom: 5px;
     }
 
-    .actors,
-    .movies {
+    .actors, .movies {
       display: flex;
-      gap: 10px;
+      gap: 15px;
       overflow-x: auto;
-      padding-bottom: 10px;
-      flex-wrap: nowrap;
       scrollbar-width: none;
-      -ms-overflow-style: none;
     }
 
-    .actors::-webkit-scrollbar,
-    .movies::-webkit-scrollbar {
+    .actors::-webkit-scrollbar, .movies::-webkit-scrollbar {
       display: none;
     }
 
     .actor {
       flex: 0 0 auto;
       text-align: center;
-      width: 70px;
-      margin-right: 5px;
+      width: 80px;
     }
 
     .actor img {
@@ -113,204 +82,136 @@
       margin-bottom: 5px;
     }
 
-    .actor div {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 0.9em;
-    }
-
     .movie {
       flex: 0 0 auto;
-      width: 120px;
+      width: 110px;
       text-align: center;
-      margin-right: 5px;
     }
 
     .movie img {
-      width: 120px;
-      height: 180px;
+      width: 100%;
+      height: 165px;
       border-radius: 10px;
       object-fit: cover;
-    }
-
-    .movie div {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 0.9em;
     }
 
     .buttons {
       display: flex;
       gap: 15px;
       margin: 20px;
-      justify-content: center;
     }
 
     .btn {
       flex: 1;
       padding: 12px;
-      font-size: 1em;
+      font-size: 1rem;
       border-radius: 8px;
       border: none;
       cursor: pointer;
-      user-select: none;
-      max-width: 180px;
-      text-align: center;
     }
 
-    .btn-trailer {
-      background-color: #333;
-      color: #fff;
-    }
+    .btn-trailer { background-color: #333; color: #fff; }
+    .btn-play { background-color: #1db954; color: #fff; }
 
-    .btn-play {
-      background-color: #1db954;
-      color: #fff;
-    }
-
-    /* Modal fullscreen */
-    .modal {
+    #trailer-modal, #player-modal {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.9);
       display: none;
       justify-content: center;
       align-items: center;
       z-index: 9999;
-      flex-direction: column;
-      padding: 10px;
     }
 
-    .modal.active {
+    #trailer-modal.active, #player-modal.active {
       display: flex;
     }
 
-    .modal iframe {
+    iframe {
       width: 90vw;
       height: 90vh;
       border: none;
       border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.7);
     }
 
     .close-btn {
       position: absolute;
       top: 20px;
       right: 30px;
-      font-size: 2em;
+      font-size: 2rem;
       color: #fff;
       background: transparent;
       border: none;
       cursor: pointer;
-      z-index: 10000;
-      user-select: none;
     }
 
-    /* Caixa de diálogo simples */
-    #input-dialog {
+    #id-dialog {
       position: fixed;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      background: #2a2c3b;
-      padding: 25px 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.8);
-      z-index: 11000;
-      width: 90vw;
-      max-width: 350px;
+      background: #2c2f3b;
+      padding: 20px;
+      border-radius: 10px;
+      z-index: 99999;
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 10px;
+      width: 90%;
+      max-width: 300px;
     }
 
-    #input-dialog input {
-      padding: 10px 15px;
-      font-size: 1.1em;
-      border-radius: 8px;
+    #id-dialog input {
+      padding: 10px;
+      font-size: 1rem;
       border: none;
-      outline: none;
-      background-color: #1b1d27;
-      color: #fff;
-      font-weight: 500;
-      letter-spacing: 0.03em;
+      border-radius: 5px;
     }
 
-    #input-dialog button {
-      padding: 12px;
-      font-size: 1em;
-      border-radius: 8px;
+    #id-dialog button {
+      padding: 10px;
+      font-size: 1rem;
+      background: #1db954;
+      color: white;
       border: none;
-      background-color: #1db954;
-      color: #fff;
+      border-radius: 5px;
       cursor: pointer;
-      user-select: none;
-      font-weight: 600;
-      transition: background-color 0.3s ease;
     }
-
-    #input-dialog button:hover {
-      background-color: #17a34a;
-    }
-
-    /* Esconde conteúdo principal até ID ser inserido */
-    .hidden {
-      display: none;
-    }
-
   </style>
 </head>
 <body>
-  <!-- Caixa de diálogo para inserir ID do filme -->
-  <div id="input-dialog">
-    <label for="movie-id-input" style="font-size:1.2em; color:#ccc; margin-bottom:5px;">Digite o ID do filme:</label>
-    <input type="number" id="movie-id-input" placeholder="Ex: 299536" />
-    <button id="load-movie-btn">Carregar Filme</button>
+  <div id="id-dialog">
+    <label for="movieId">Digite o ID do filme:</label>
+    <input type="number" id="movieId" placeholder="Ex: 299536" />
+    <button onclick="start()">Carregar</button>
   </div>
 
-  <div id="main-content" class="hidden">
-    <div class="poster-container">
-      <img src="" alt="Poster do Filme" />
-      <div class="overlay">
-        <h1>Carregando...</h1>
-        <div class="info"></div>
-        <div class="rating"></div>
-      </div>
-    </div>
+  <div class="poster-container"><img src="" alt="Poster" /><div class="overlay"><h1></h1><div class="info"></div><div class="rating"></div></div></div>
+  <div class="description"></div>
 
-    <div class="description">Carregando descrição...</div>
-
-    <div class="section">
-      <h2>Elenco</h2>
-      <div class="actors"></div>
-    </div>
-
-    <div class="section">
-      <h2>Filmes Similares</h2>
-      <div class="movies"></div>
-    </div>
-
-    <div class="buttons">
-      <button class="btn btn-trailer">TRAILER</button>
-      <button class="btn btn-play">ASSISTIR AGORA</button>
-    </div>
+  <div class="section">
+    <h2>Elenco</h2>
+    <div class="actors"></div>
   </div>
 
-  <!-- Modal Trailer -->
-  <div id="trailer-modal" class="modal" aria-hidden="true">
-    <button class="close-btn" id="close-trailer" aria-label="Fechar trailer">&times;</button>
-    <iframe src="" allow="autoplay; encrypted-media" allowfullscreen sandbox="allow-same-origin allow-scripts allow-presentation"></iframe>
+  <div class="section">
+    <h2>Filmes Similares</h2>
+    <div class="movies"></div>
   </div>
 
-  <!-- Modal Play -->
-  <div id="play-modal" class="modal" aria-hidden="true">
-    <button class="close-btn" id="close-play" aria-label="Fechar player">&times;</button>
-    <iframe src="" allowfullscreen sandbox="allow-same-origin allow-scripts allow-presentation"></iframe>
+  <div class="buttons">
+    <button class="btn btn-trailer">TRAILER</button>
+    <button class="btn btn-play">ASSISTIR AGORA</button>
+  </div>
+
+  <div id="trailer-modal">
+    <button class="close-btn" onclick="closeModal('trailer-modal')">&times;</button>
+    <iframe allow="autoplay; encrypted-media" allowfullscreen></iframe>
+  </div>
+
+  <div id="player-modal">
+    <button class="close-btn" onclick="closeModal('player-modal')">&times;</button>
+    <iframe sandbox="allow-same-origin allow-scripts allow-forms" allowfullscreen></iframe>
   </div>
 
   <script>
@@ -318,166 +219,87 @@
     const lang = 'pt-BR';
     const baseUrl = 'https://api.themoviedb.org/3';
 
-    let currentMovieId = null;
+    let movieId = null;
 
-    // Elementos
-    const inputDialog = document.getElementById('input-dialog');
-    const movieIdInput = document.getElementById('movie-id-input');
-    const loadMovieBtn = document.getElementById('load-movie-btn');
-    const mainContent = document.getElementById('main-content');
-
-    const posterImg = document.querySelector('.poster-container img');
-    const titleEl = document.querySelector('h1');
-    const infoEl = document.querySelector('.info');
-    const ratingEl = document.querySelector('.rating');
-    const descriptionEl = document.querySelector('.description');
-    const castContainer = document.querySelector('.actors');
-    const similarContainer = document.querySelector('.movies');
-    const trailerBtn = document.querySelector('.btn-trailer');
-    const playBtn = document.querySelector('.btn-play');
-
-    const trailerModal = document.getElementById('trailer-modal');
-    const trailerIframe = trailerModal.querySelector('iframe');
-    const closeTrailerBtn = document.getElementById('close-trailer');
-
-    const playModal = document.getElementById('play-modal');
-    const playIframe = playModal.querySelector('iframe');
-    const closePlayBtn = document.getElementById('close-play');
-
-    function blockRedirect(iframe, originalSrc) {
-      iframe.onload = () => {
-        try {
-          const iframeWindow = iframe.contentWindow;
-          const currentSrc = iframeWindow.location.href;
-          if (currentSrc !== originalSrc) {
-            iframe.src = originalSrc;
-          }
-        } catch (e) {
-          // Cross-origin: ignorar erro esperado
-        }
-      };
+    function start() {
+      const input = document.getElementById('movieId').value;
+      if (!input) return;
+      movieId = input;
+      document.getElementById('id-dialog').style.display = 'none';
+      loadMovieDetails();
     }
 
-    async function loadMovieDetails(id) {
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      modal.classList.remove('active');
+      modal.querySelector('iframe').src = '';
+    }
+
+    async function loadMovieDetails() {
       try {
-        currentMovieId = id;
-        inputDialog.style.display = 'none';
-        mainContent.classList.remove('hidden');
-
         const [detailsRes, creditsRes, similarRes, videosRes] = await Promise.all([
-          fetch(`${baseUrl}/movie/${id}?api_key=${apiKey}&language=${lang}`),
-          fetch(`${baseUrl}/movie/${id}/credits?api_key=${apiKey}&language=${lang}`),
-          fetch(`${baseUrl}/movie/${id}/similar?api_key=${apiKey}&language=${lang}`),
-          fetch(`${baseUrl}/movie/${id}/videos?api_key=${apiKey}&language=${lang}`)
+          fetch(`${baseUrl}/movie/${movieId}?api_key=${apiKey}&language=${lang}`),
+          fetch(`${baseUrl}/movie/${movieId}/credits?api_key=${apiKey}&language=${lang}`),
+          fetch(`${baseUrl}/movie/${movieId}/similar?api_key=${apiKey}&language=${lang}`),
+          fetch(`${baseUrl}/movie/${movieId}/videos?api_key=${apiKey}&language=${lang}`)
         ]);
-
-        if (!detailsRes.ok) throw new Error('Filme não encontrado.');
 
         const details = await detailsRes.json();
         const credits = await creditsRes.json();
         const similar = await similarRes.json();
         const videos = await videosRes.json();
 
-        titleEl.textContent = details.title;
-        posterImg.src = `https://image.tmdb.org/t/p/original${details.backdrop_path}`;
-        const genres = details.genres.map((g) => g.name).join(', ');
-        const releaseYear = new Date(details.release_date).getFullYear();
-        infoEl.textContent = `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}min • ${genres} • ${releaseYear}`;
-        ratingEl.textContent = `⭐ ${details.vote_average.toFixed(1)} / ${details.vote_count}`;
-        descriptionEl.textContent = details.overview;
+        document.querySelector('h1').textContent = details.title;
+        document.querySelector('.poster-container img').src = `https://image.tmdb.org/t/p/original${details.backdrop_path}`;
+        document.querySelector('.info').textContent = `${Math.floor(details.runtime/60)}h ${details.runtime%60}min • ${details.genres.map(g => g.name).join(', ')} • ${details.release_date.slice(0,4)}`;
+        document.querySelector('.rating').textContent = `⭐ ${details.vote_average.toFixed(1)} / ${details.vote_count}`;
+        document.querySelector('.description').textContent = details.overview;
 
-        // Elenco
+        const castContainer = document.querySelector('.actors');
         castContainer.innerHTML = '';
-        credits.cast.slice(0, 10).forEach((actor) => {
+        credits.cast.slice(0, 10).forEach(actor => {
           if (!actor.profile_path) return;
-          const name = actor.name.length > 20 ? actor.name.slice(0, 17) + '...' : actor.name;
-          const actorEl = document.createElement('div');
-          actorEl.classList.add('actor');
-          actorEl.innerHTML = `
-            <img src="https://image.tmdb.org/t/p/w185${actor.profile_path}" alt="${actor.name}" />
-            <div>${name}</div>
-          `;
-          castContainer.appendChild(actorEl);
+          castContainer.innerHTML += `
+            <div class="actor">
+              <img src="https://image.tmdb.org/t/p/w185${actor.profile_path}" alt="${actor.name}" />
+              <div>${actor.name.length > 20 ? actor.name.slice(0, 17) + '...' : actor.name}</div>
+            </div>`;
         });
 
-        // Filmes similares
+        const similarContainer = document.querySelector('.movies');
         similarContainer.innerHTML = '';
-        similar.results.slice(0, 10).forEach((movie) => {
+        similar.results.slice(0, 10).forEach(movie => {
           if (!movie.poster_path) return;
-          const title = movie.title.length > 20 ? movie.title.slice(0, 17) + '...' : movie.title;
-          const movieEl = document.createElement('div');
-          movieEl.classList.add('movie');
-          movieEl.innerHTML = `
-            <img src="https://image.tmdb.org/t/p/w300${movie.poster_path}" alt="${movie.title}" />
-            <div>${title}</div>
-          `;
-          similarContainer.appendChild(movieEl);
+          similarContainer.innerHTML += `
+            <div class="movie">
+              <img src="https://image.tmdb.org/t/p/w300${movie.poster_path}" alt="${movie.title}" />
+              <div>${movie.title.length > 20 ? movie.title.slice(0, 17) + '...' : movie.title}</div>
+            </div>`;
         });
 
-        // Configura botão trailer
-        const trailer = videos.results.find((v) => v.type === 'Trailer' && v.site === 'YouTube');
+        const trailerBtn = document.querySelector('.btn-trailer');
+        const trailer = videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
         if (trailer) {
           trailerBtn.disabled = false;
-          trailerBtn.textContent = 'TRAILER';
           trailerBtn.onclick = () => {
-            trailerIframe.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
-            trailerModal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            blockRedirect(trailerIframe, trailerIframe.src);
+            document.querySelector('#trailer-modal iframe').src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
+            document.getElementById('trailer-modal').classList.add('active');
           };
         } else {
           trailerBtn.disabled = true;
-          trailerBtn.textContent = 'Trailer não disponível';
-          trailerBtn.onclick = null;
+          trailerBtn.textContent = 'Trailer indisponível';
         }
 
-        // Configura botão assistir agora
-        playBtn.disabled = false;
-        playBtn.textContent = 'ASSISTIR AGORA';
-        playBtn.onclick = () => {
-          playIframe.src = `https://embedder.net/e/${currentMovieId}`;
-          playModal.classList.add('active');
-          document.body.style.overflow = 'hidden';
-          blockRedirect(playIframe, playIframe.src);
+        document.querySelector('.btn-play').onclick = () => {
+          const player = document.querySelector('#player-modal iframe');
+          player.src = `https://embedder.net/e/${movieId}`;
+          document.getElementById('player-modal').classList.add('active');
         };
 
       } catch (error) {
-        alert('Erro ao carregar dados do filme. Verifique o ID e tente novamente.');
-        inputDialog.style.display = 'flex';
-        mainContent.classList.add('hidden');
-        console.error(error);
+        alert('Erro ao carregar dados do filme.');
       }
     }
-
-    loadMovieBtn.onclick = () => {
-      const id = movieIdInput.value.trim();
-      if (id) {
-        loadMovieDetails(id);
-      } else {
-        alert('Por favor, digite um ID válido.');
-      }
-    };
-
-    closeTrailerBtn.onclick = () => {
-      trailerModal.classList.remove('active');
-      trailerIframe.src = '';
-      document.body.style.overflow = '';
-    };
-
-    trailerModal.onclick = (e) => {
-      if (e.target === trailerModal) closeTrailerBtn.onclick();
-    };
-
-    closePlayBtn.onclick = () => {
-      playModal.classList.remove('active');
-      playIframe.src = '';
-      document.body.style.overflow = '';
-    };
-
-    playModal.onclick = (e) => {
-      if (e.target === playModal) closePlayBtn.onclick();
-    };
-
   </script>
 </body>
 </html>
