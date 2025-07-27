@@ -2,8 +2,12 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vingadores: Guerra Infinita</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- Impede que seu site seja embedado em iframe de outros domínios -->
+  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self';" />
+
   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
   <style>
     * {
@@ -64,13 +68,13 @@
     }
 
     .description {
-      padding: 15px 12px;
+      padding: 20px;
       font-size: 1em;
       line-height: 1.6;
     }
 
     .section {
-      padding: 0 12px;
+      padding: 0 20px;
       margin-top: 20px;
     }
 
@@ -86,7 +90,7 @@
       display: flex;
       gap: 10px;
       overflow-x: auto;
-      padding-bottom: 6px;
+      padding-bottom: 10px;
       flex-wrap: nowrap;
       scrollbar-width: none;
       -ms-overflow-style: none;
@@ -120,12 +124,12 @@
 
     .movie {
       flex: 0 0 auto;
-      width: 120px;
+      width: 120px; /* aumentei largura para melhor visual */
       text-align: center;
     }
 
     .movie img {
-      width: 100%;
+      width: 120px;
       height: 180px;
       border-radius: 10px;
       object-fit: cover;
@@ -141,12 +145,11 @@
     .buttons {
       display: flex;
       gap: 15px;
-      margin: 30px 12px;
-      flex-wrap: nowrap;
+      margin: 30px 20px;
     }
 
     .btn {
-      flex: 1 1 0;
+      flex: 1;
       padding: 12px;
       font-size: 1em;
       border-radius: 8px;
@@ -165,7 +168,9 @@
       color: #fff;
     }
 
-    #trailer-modal {
+    /* Modal do trailer fullscreen */
+    #trailer-modal,
+    #play-modal {
       position: fixed;
       top: 0;
       left: 0;
@@ -178,11 +183,13 @@
       z-index: 9999;
     }
 
-    #trailer-modal.active {
+    #trailer-modal.active,
+    #play-modal.active {
       display: flex;
     }
 
-    #trailer-modal iframe {
+    #trailer-modal iframe,
+    #play-modal iframe {
       width: 90vw;
       height: 90vh;
       border: none;
@@ -190,44 +197,8 @@
       box-shadow: 0 0 20px rgba(0,0,0,0.7);
     }
 
-    #close-trailer {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      font-size: 2em;
-      color: #fff;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      z-index: 10000;
-      user-select: none;
-    }
-
-    #player-fullscreen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.95);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
-
-    #player-fullscreen.active {
-      display: flex;
-    }
-
-    #player-fullscreen iframe {
-      width: 90vw;
-      height: 90vh;
-      border: none;
-      border-radius: 8px;
-    }
-
-    #close-player {
+    #close-trailer,
+    #close-play {
       position: absolute;
       top: 20px;
       right: 30px;
@@ -269,31 +240,38 @@
   </div>
 
   <!-- Modal Trailer -->
-  <div id="trailer-modal">
+  <div id="trailer-modal" aria-modal="true" role="dialog">
     <button id="close-trailer" aria-label="Fechar trailer">&times;</button>
     <iframe src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
   </div>
 
-  <!-- Modal Player -->
-  <div id="player-fullscreen">
-    <button id="close-player" aria-label="Fechar player">&times;</button>
+  <!-- Modal Assistir Agora -->
+  <div id="play-modal" aria-modal="true" role="dialog">
+    <button id="close-play" aria-label="Fechar player">&times;</button>
     <iframe src="" allowfullscreen></iframe>
   </div>
 
   <script>
+    // Bloqueia execução fora do domínio autorizado (substitua seu domínio aqui)
+    if(location.hostname !== 'seu-usuario.github.io') {
+      alert('Este site não é autorizado a rodar neste domínio.');
+      window.stop();
+    }
+
     const apiKey = '6360eb433f3020d94a5de4f0fb52c720';
     const lang = 'pt-BR';
     const baseUrl = 'https://api.themoviedb.org/3';
-    const movieId = 299536;
+
+    const movieId = 299536; // Vingadores: Guerra Infinita
 
     const trailerModal = document.getElementById('trailer-modal');
     const trailerIframe = trailerModal.querySelector('iframe');
     const closeTrailerBtn = document.getElementById('close-trailer');
     const trailerBtn = document.querySelector('.btn-trailer');
 
-    const playerModal = document.getElementById('player-fullscreen');
-    const playerIframe = playerModal.querySelector('iframe');
-    const closePlayerBtn = document.getElementById('close-player');
+    const playModal = document.getElementById('play-modal');
+    const playIframe = playModal.querySelector('iframe');
+    const closePlayBtn = document.getElementById('close-play');
     const playBtn = document.querySelector('.btn-play');
 
     async function loadMovieDetails() {
@@ -319,7 +297,9 @@
         document.querySelector(
           '.info'
         ).textContent = `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}min • ${genres} • ${releaseYear}`;
-        document.querySelector('.rating').textContent = `⭐ ${details.vote_average.toFixed(1)} / ${details.vote_count}`;
+        document.querySelector('.rating').textContent = `⭐ ${details.vote_average.toFixed(
+          1
+        )} / ${details.vote_count}`;
         document.querySelector('.description').textContent = details.overview;
 
         // Elenco
@@ -352,7 +332,7 @@
           similarContainer.appendChild(movieEl);
         });
 
-        // Trailer
+        // Configura botão trailer
         const trailer = videos.results.find((v) => v.type === 'Trailer' && v.site === 'YouTube');
         if (trailer) {
           trailerBtn.disabled = false;
@@ -367,13 +347,13 @@
           trailerBtn.textContent = 'Trailer não disponível';
         }
 
-        // Player
+        // Configura botão assistir agora
         playBtn.onclick = () => {
-          playerIframe.src = `https://embedder.net/e/${movieId}`;
-          playerModal.classList.add('active');
+          // Link para embedder.net com ID do filme atual
+          playIframe.src = `https://embedder.net/e/${movieId}`;
+          playModal.classList.add('active');
           document.body.style.overflow = 'hidden';
         };
-
       } catch (error) {
         console.error(error);
         alert('Erro ao carregar dados do filme.');
@@ -392,17 +372,34 @@
       }
     };
 
-    closePlayerBtn.onclick = () => {
-      playerModal.classList.remove('active');
-      playerIframe.src = '';
+    closePlayBtn.onclick = () => {
+      playModal.classList.remove('active');
+      playIframe.src = '';
       document.body.style.overflow = '';
     };
 
-    playerModal.onclick = (e) => {
-      if (e.target === playerModal) {
-        closePlayerBtn.onclick();
+    playModal.onclick = (e) => {
+      if (e.target === playModal) {
+        closePlayBtn.onclick();
       }
     };
+
+    // Força links abrirem em nova aba, com segurança
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('a').forEach(link => {
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+      });
+    });
+
+    // Proteção contra redirecionamentos forçados sem interação
+    window.addEventListener('beforeunload', (e) => {
+      const suspicious = document.activeElement?.tagName !== 'A';
+      if (suspicious) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
 
     loadMovieDetails();
   </script>
