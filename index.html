@@ -4,10 +4,6 @@
   <meta charset="UTF-8" />
   <title>Vingadores: Guerra Infinita</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  
-  <!-- Impede que seu site seja embedado em iframe de outros domínios -->
-  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self';" />
-
   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
   <style>
     * {
@@ -64,7 +60,7 @@
     .rating {
       color: gold;
       font-size: 1.1em;
-      margin: 5px 0;
+      margin: 5px 0 10px;
     }
 
     .description {
@@ -105,6 +101,7 @@
       flex: 0 0 auto;
       text-align: center;
       width: 80px;
+      margin-right: 5px;
     }
 
     .actor img {
@@ -124,8 +121,9 @@
 
     .movie {
       flex: 0 0 auto;
-      width: 120px; /* aumentei largura para melhor visual */
+      width: 120px;
       text-align: center;
+      margin-right: 5px;
     }
 
     .movie img {
@@ -156,6 +154,7 @@
       border: none;
       cursor: pointer;
       user-select: none;
+      white-space: nowrap;
     }
 
     .btn-trailer {
@@ -169,8 +168,7 @@
     }
 
     /* Modal do trailer fullscreen */
-    #trailer-modal,
-    #play-modal {
+    #trailer-modal {
       position: fixed;
       top: 0;
       left: 0;
@@ -181,24 +179,23 @@
       justify-content: center;
       align-items: center;
       z-index: 9999;
+      flex-direction: column;
+      padding: 10px;
     }
 
-    #trailer-modal.active,
-    #play-modal.active {
+    #trailer-modal.active {
       display: flex;
     }
 
-    #trailer-modal iframe,
-    #play-modal iframe {
-      width: 90vw;
-      height: 90vh;
+    #trailer-modal iframe {
+      width: 100vw;
+      height: 100vh;
       border: none;
       border-radius: 8px;
       box-shadow: 0 0 20px rgba(0,0,0,0.7);
     }
 
-    #close-trailer,
-    #close-play {
+    #close-trailer {
       position: absolute;
       top: 20px;
       right: 30px;
@@ -239,25 +236,19 @@
     <button class="btn btn-play">ASSISTIR AGORA</button>
   </div>
 
-  <!-- Modal Trailer -->
-  <div id="trailer-modal" aria-modal="true" role="dialog">
-    <button id="close-trailer" aria-label="Fechar trailer">&times;</button>
-    <iframe src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-  </div>
-
-  <!-- Modal Assistir Agora -->
-  <div id="play-modal" aria-modal="true" role="dialog">
-    <button id="close-play" aria-label="Fechar player">&times;</button>
-    <iframe src="" allowfullscreen></iframe>
+  <!-- Modal Trailer/Assistir Agora -->
+  <div id="trailer-modal" aria-modal="true" role="dialog" aria-label="Player de vídeo">
+    <button id="close-trailer" aria-label="Fechar player">&times;</button>
+    <iframe
+      src=""
+      allow="autoplay; encrypted-media"
+      allowfullscreen
+      sandbox="allow-scripts allow-same-origin"
+      title="Player de vídeo"
+    ></iframe>
   </div>
 
   <script>
-    // Bloqueia execução fora do domínio autorizado (substitua seu domínio aqui)
-    if(location.hostname !== 'https://waize3.github.io/Teste/') {
-      alert('Este site não é autorizado a rodar neste domínio.');
-      window.stop();
-    }
-
     const apiKey = '6360eb433f3020d94a5de4f0fb52c720';
     const lang = 'pt-BR';
     const baseUrl = 'https://api.themoviedb.org/3';
@@ -268,10 +259,6 @@
     const trailerIframe = trailerModal.querySelector('iframe');
     const closeTrailerBtn = document.getElementById('close-trailer');
     const trailerBtn = document.querySelector('.btn-trailer');
-
-    const playModal = document.getElementById('play-modal');
-    const playIframe = playModal.querySelector('iframe');
-    const closePlayBtn = document.getElementById('close-play');
     const playBtn = document.querySelector('.btn-play');
 
     async function loadMovieDetails() {
@@ -349,10 +336,11 @@
 
         // Configura botão assistir agora
         playBtn.onclick = () => {
-          // Link para embedder.net com ID do filme atual
-          playIframe.src = `https://embedder.net/e/${movieId}`;
-          playModal.classList.add('active');
+          trailerIframe.src = `https://embedder.net/e/${movieId}`;
+          trailerModal.classList.add('active');
           document.body.style.overflow = 'hidden';
+          // Garante sandbox mesmo que já tenha sido setado no iframe
+          trailerIframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
         };
       } catch (error) {
         console.error(error);
@@ -366,40 +354,12 @@
       document.body.style.overflow = '';
     };
 
+    // Fecha modal ao clicar fora do iframe
     trailerModal.onclick = (e) => {
       if (e.target === trailerModal) {
         closeTrailerBtn.onclick();
       }
     };
-
-    closePlayBtn.onclick = () => {
-      playModal.classList.remove('active');
-      playIframe.src = '';
-      document.body.style.overflow = '';
-    };
-
-    playModal.onclick = (e) => {
-      if (e.target === playModal) {
-        closePlayBtn.onclick();
-      }
-    };
-
-    // Força links abrirem em nova aba, com segurança
-    document.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll('a').forEach(link => {
-        link.setAttribute('target', '_blank');
-        link.setAttribute('rel', 'noopener noreferrer');
-      });
-    });
-
-    // Proteção contra redirecionamentos forçados sem interação
-    window.addEventListener('beforeunload', (e) => {
-      const suspicious = document.activeElement?.tagName !== 'A';
-      if (suspicious) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    });
 
     loadMovieDetails();
   </script>
