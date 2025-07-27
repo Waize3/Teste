@@ -17,12 +17,13 @@
       background-color: #21232d;
       color: #fff;
       overflow-x: hidden;
+      position: relative;
     }
 
     .poster-container {
       position: relative;
       width: 100%;
-      height: 45vh;
+      height: 400px;
       overflow: hidden;
     }
 
@@ -42,49 +43,50 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      padding: 1rem;
+      padding: 20px;
       z-index: 1;
     }
 
     h1 {
-      font-size: 1.8rem;
+      font-size: 2em;
     }
 
     .info {
-      font-size: 0.95rem;
+      font-size: 0.95em;
       color: #ccc;
-      margin: 0.3rem 0;
+      margin: 5px 0 5px;
     }
 
     .rating {
       color: gold;
-      font-size: 1.1rem;
+      font-size: 1.1em;
+      margin: 5px 0;
     }
 
     .description {
-      padding: 1.2rem;
-      font-size: 1rem;
+      padding: 15px 12px;
+      font-size: 1em;
       line-height: 1.6;
     }
 
     .section {
-      padding: 0 1.2rem;
-      margin-top: 1.5rem;
+      padding: 0 12px;
+      margin-top: 20px;
     }
 
     .section h2 {
-      font-size: 1.3rem;
-      margin-bottom: 0.5rem;
+      font-size: 1.3em;
+      margin-bottom: 10px;
       border-bottom: 1px solid #333;
-      padding-bottom: 0.3rem;
+      padding-bottom: 5px;
     }
 
     .actors,
     .movies {
       display: flex;
-      gap: 15px;
+      gap: 10px;
       overflow-x: auto;
-      padding-bottom: 10px;
+      padding-bottom: 6px;
       flex-wrap: nowrap;
       scrollbar-width: none;
       -ms-overflow-style: none;
@@ -98,12 +100,12 @@
     .actor {
       flex: 0 0 auto;
       text-align: center;
-      width: 70px;
+      width: 80px;
     }
 
     .actor img {
-      width: 65px;
-      height: 65px;
+      width: 70px;
+      height: 70px;
       border-radius: 50%;
       object-fit: cover;
       margin-bottom: 5px;
@@ -113,7 +115,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      font-size: 0.85rem;
+      font-size: 0.9em;
     }
 
     .movie {
@@ -133,20 +135,20 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      font-size: 0.85rem;
+      font-size: 0.9em;
     }
 
     .buttons {
       display: flex;
       gap: 15px;
-      margin: 2rem 1.2rem;
+      margin: 30px 12px;
       flex-wrap: nowrap;
     }
 
     .btn {
       flex: 1 1 0;
-      padding: 0.8rem;
-      font-size: 1rem;
+      padding: 12px;
+      font-size: 1em;
       border-radius: 8px;
       border: none;
       cursor: pointer;
@@ -163,7 +165,6 @@
       color: #fff;
     }
 
-    /* Modal fullscreen */
     #trailer-modal {
       position: fixed;
       top: 0;
@@ -202,38 +203,41 @@
       user-select: none;
     }
 
-    /* Responsivo */
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 1.4rem;
-      }
+    #player-fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
 
-      .info, .rating {
-        font-size: 0.85rem;
-      }
+    #player-fullscreen.active {
+      display: flex;
+    }
 
-      .description {
-        font-size: 0.95rem;
-        padding: 1rem;
-      }
+    #player-fullscreen iframe {
+      width: 90vw;
+      height: 90vh;
+      border: none;
+      border-radius: 8px;
+    }
 
-      .actor, .movie {
-        width: 100px;
-      }
-
-      .actor img {
-        width: 60px;
-        height: 60px;
-      }
-
-      .movie img {
-        height: 160px;
-      }
-
-      #trailer-modal iframe {
-        width: 95vw;
-        height: 55vh;
-      }
+    #close-player {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 2em;
+      color: #fff;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 10000;
+      user-select: none;
     }
   </style>
 </head>
@@ -264,10 +268,16 @@
     <button class="btn btn-play">ASSISTIR AGORA</button>
   </div>
 
-  <!-- Modal -->
+  <!-- Modal Trailer -->
   <div id="trailer-modal">
     <button id="close-trailer" aria-label="Fechar trailer">&times;</button>
     <iframe src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+  </div>
+
+  <!-- Modal Player -->
+  <div id="player-fullscreen">
+    <button id="close-player" aria-label="Fechar player">&times;</button>
+    <iframe src="" allowfullscreen></iframe>
   </div>
 
   <script>
@@ -280,6 +290,10 @@
     const trailerIframe = trailerModal.querySelector('iframe');
     const closeTrailerBtn = document.getElementById('close-trailer');
     const trailerBtn = document.querySelector('.btn-trailer');
+
+    const playerModal = document.getElementById('player-fullscreen');
+    const playerIframe = playerModal.querySelector('iframe');
+    const closePlayerBtn = document.getElementById('close-player');
     const playBtn = document.querySelector('.btn-play');
 
     async function loadMovieDetails() {
@@ -300,15 +314,18 @@
 
         document.querySelector('h1').textContent = details.title;
         document.querySelector('.poster-container img').src = `https://image.tmdb.org/t/p/original${details.backdrop_path}`;
-        const genres = details.genres.map(g => g.name).join(', ');
+        const genres = details.genres.map((g) => g.name).join(', ');
         const releaseYear = new Date(details.release_date).getFullYear();
-        document.querySelector('.info').textContent = `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}min • ${genres} • ${releaseYear}`;
+        document.querySelector(
+          '.info'
+        ).textContent = `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}min • ${genres} • ${releaseYear}`;
         document.querySelector('.rating').textContent = `⭐ ${details.vote_average.toFixed(1)} / ${details.vote_count}`;
         document.querySelector('.description').textContent = details.overview;
 
+        // Elenco
         const castContainer = document.querySelector('.actors');
         castContainer.innerHTML = '';
-        credits.cast.slice(0, 10).forEach(actor => {
+        credits.cast.slice(0, 10).forEach((actor) => {
           if (!actor.profile_path) return;
           const name = actor.name.length > 20 ? actor.name.slice(0, 17) + '...' : actor.name;
           const actorEl = document.createElement('div');
@@ -320,9 +337,10 @@
           castContainer.appendChild(actorEl);
         });
 
+        // Filmes similares
         const similarContainer = document.querySelector('.movies');
         similarContainer.innerHTML = '';
-        similar.results.slice(0, 10).forEach(movie => {
+        similar.results.slice(0, 10).forEach((movie) => {
           if (!movie.poster_path) return;
           const title = movie.title.length > 20 ? movie.title.slice(0, 17) + '...' : movie.title;
           const movieEl = document.createElement('div');
@@ -334,7 +352,8 @@
           similarContainer.appendChild(movieEl);
         });
 
-        const trailer = videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+        // Trailer
+        const trailer = videos.results.find((v) => v.type === 'Trailer' && v.site === 'YouTube');
         if (trailer) {
           trailerBtn.disabled = false;
           trailerBtn.textContent = 'TRAILER';
@@ -348,9 +367,10 @@
           trailerBtn.textContent = 'Trailer não disponível';
         }
 
+        // Player
         playBtn.onclick = () => {
-          trailerIframe.src = `https://embedder.net/e/${movieId}`;
-          trailerModal.classList.add('active');
+          playerIframe.src = `https://embedder.net/e/${movieId}`;
+          playerModal.classList.add('active');
           document.body.style.overflow = 'hidden';
         };
 
@@ -366,9 +386,21 @@
       document.body.style.overflow = '';
     };
 
-    trailerModal.onclick = e => {
+    trailerModal.onclick = (e) => {
       if (e.target === trailerModal) {
         closeTrailerBtn.onclick();
+      }
+    };
+
+    closePlayerBtn.onclick = () => {
+      playerModal.classList.remove('active');
+      playerIframe.src = '';
+      document.body.style.overflow = '';
+    };
+
+    playerModal.onclick = (e) => {
+      if (e.target === playerModal) {
+        closePlayerBtn.onclick();
       }
     };
 
