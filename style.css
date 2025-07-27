@@ -1,4 +1,8 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 body {
   font-family: 'Roboto', sans-serif;
@@ -15,7 +19,7 @@ body {
   background: #2a2c3b;
   padding: 25px 30px;
   border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.8);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
   z-index: 99999;
   width: 90vw;
   max-width: 350px;
@@ -120,14 +124,16 @@ h1 {
   padding-bottom: 5px;
 }
 
-.actors, .movies {
+.actors,
+.movies {
   display: flex;
   gap: 15px;
   overflow-x: auto;
   scrollbar-width: none;
 }
 
-.actors::-webkit-scrollbar, .movies::-webkit-scrollbar {
+.actors::-webkit-scrollbar,
+.movies::-webkit-scrollbar {
   display: none;
 }
 
@@ -145,6 +151,13 @@ h1 {
   margin-bottom: 5px;
 }
 
+.actor div {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9rem;
+}
+
 .movie {
   flex: 0 0 auto;
   width: 110px;
@@ -156,6 +169,13 @@ h1 {
   height: 165px;
   border-radius: 10px;
   object-fit: cover;
+}
+
+.movie div {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9rem;
 }
 
 .buttons {
