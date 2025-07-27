@@ -14,6 +14,63 @@
       color: #fff;
     }
 
+    /* Caixa de diálogo */
+    #id-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #2a2c3b;
+      padding: 25px 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+      z-index: 99999;
+      width: 90vw;
+      max-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    #id-dialog label {
+      font-size: 1.2em;
+      color: #ccc;
+      margin-bottom: 5px;
+    }
+
+    #id-dialog input {
+      padding: 10px 15px;
+      font-size: 1.1em;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      background-color: #1b1d27;
+      color: #fff;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+
+    #id-dialog button {
+      padding: 12px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: none;
+      background-color: #1db954;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+
+    #id-dialog button:hover {
+      background-color: #17a34a;
+    }
+
+    /* Conteúdo principal inicialmente escondido */
+    #main-content {
+      display: none;
+    }
+
     .poster-container {
       position: relative;
       width: 100%;
@@ -145,86 +202,39 @@
       border: none;
       cursor: pointer;
     }
-
-    /* NOVA CAIXA DE DIÁLOGO */
-    #id-dialog {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #2a2c3b;
-      padding: 25px 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.8);
-      z-index: 99999;
-      width: 90vw;
-      max-width: 350px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    #id-dialog label {
-      font-size: 1.2em;
-      color: #ccc;
-      margin-bottom: 5px;
-    }
-
-    #id-dialog input {
-      padding: 10px 15px;
-      font-size: 1.1em;
-      border-radius: 8px;
-      border: none;
-      outline: none;
-      background-color: #1b1d27;
-      color: #fff;
-      font-weight: 500;
-      letter-spacing: 0.03em;
-    }
-
-    #id-dialog button {
-      padding: 12px;
-      font-size: 1em;
-      border-radius: 8px;
-      border: none;
-      background-color: #1db954;
-      color: #fff;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background-color 0.3s ease;
-    }
-
-    #id-dialog button:hover {
-      background-color: #17a34a;
-    }
   </style>
 </head>
 <body>
-  <!-- NOVA CAIXA DE DIÁLOGO -->
+
+  <!-- Caixa de Diálogo -->
   <div id="id-dialog">
     <label for="movieId">Digite o ID do filme:</label>
     <input type="number" id="movieId" placeholder="Ex: 299536" />
     <button onclick="start()">Carregar Filme</button>
   </div>
 
-  <div class="poster-container"><img src="" alt="Poster" /><div class="overlay"><h1></h1><div class="info"></div><div class="rating"></div></div></div>
-  <div class="description"></div>
+  <!-- Conteúdo principal escondido inicialmente -->
+  <div id="main-content">
+    <div class="poster-container"><img src="" alt="Poster" /><div class="overlay"><h1></h1><div class="info"></div><div class="rating"></div></div></div>
+    <div class="description"></div>
 
-  <div class="section">
-    <h2>Elenco</h2>
-    <div class="actors"></div>
+    <div class="section">
+      <h2>Elenco</h2>
+      <div class="actors"></div>
+    </div>
+
+    <div class="section">
+      <h2>Filmes Similares</h2>
+      <div class="movies"></div>
+    </div>
+
+    <div class="buttons">
+      <button class="btn btn-trailer">TRAILER</button>
+      <button class="btn btn-play">ASSISTIR AGORA</button>
+    </div>
   </div>
 
-  <div class="section">
-    <h2>Filmes Similares</h2>
-    <div class="movies"></div>
-  </div>
-
-  <div class="buttons">
-    <button class="btn btn-trailer">TRAILER</button>
-    <button class="btn btn-play">ASSISTIR AGORA</button>
-  </div>
-
+  <!-- Modais -->
   <div id="trailer-modal">
     <button class="close-btn" onclick="closeModal('trailer-modal')">&times;</button>
     <iframe allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -250,6 +260,7 @@
       }
       movieId = input;
       document.getElementById('id-dialog').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
       loadMovieDetails();
     }
 
