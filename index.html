@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>Vingadores: Guerra Infinita</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
   <style>
     * {
@@ -18,6 +17,8 @@
       color: #fff;
       overflow-x: hidden;
       position: relative;
+      min-height: 100vh;
+      padding-bottom: 60px;
     }
 
     .poster-container {
@@ -60,7 +61,7 @@
     .rating {
       color: gold;
       font-size: 1.1em;
-      margin: 5px 0 10px;
+      margin: 5px 0;
     }
 
     .description {
@@ -100,7 +101,7 @@
     .actor {
       flex: 0 0 auto;
       text-align: center;
-      width: 80px;
+      width: 70px;
       margin-right: 5px;
     }
 
@@ -143,7 +144,8 @@
     .buttons {
       display: flex;
       gap: 15px;
-      margin: 30px 20px;
+      margin: 20px;
+      justify-content: center;
     }
 
     .btn {
@@ -154,7 +156,8 @@
       border: none;
       cursor: pointer;
       user-select: none;
-      white-space: nowrap;
+      max-width: 180px;
+      text-align: center;
     }
 
     .btn-trailer {
@@ -167,8 +170,8 @@
       color: #fff;
     }
 
-    /* Modal do trailer fullscreen */
-    #trailer-modal {
+    /* Modal fullscreen */
+    .modal {
       position: fixed;
       top: 0;
       left: 0;
@@ -183,19 +186,19 @@
       padding: 10px;
     }
 
-    #trailer-modal.active {
+    .modal.active {
       display: flex;
     }
 
-    #trailer-modal iframe {
-      width: 100vw;
-      height: 100vh;
+    .modal iframe {
+      width: 90vw;
+      height: 90vh;
       border: none;
       border-radius: 8px;
       box-shadow: 0 0 20px rgba(0,0,0,0.7);
     }
 
-    #close-trailer {
+    .close-btn {
       position: absolute;
       top: 20px;
       right: 30px;
@@ -207,45 +210,107 @@
       z-index: 10000;
       user-select: none;
     }
+
+    /* Caixa de diálogo simples */
+    #input-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #2a2c3b;
+      padding: 25px 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+      z-index: 11000;
+      width: 90vw;
+      max-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    #input-dialog input {
+      padding: 10px 15px;
+      font-size: 1.1em;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      background-color: #1b1d27;
+      color: #fff;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+
+    #input-dialog button {
+      padding: 12px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: none;
+      background-color: #1db954;
+      color: #fff;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+
+    #input-dialog button:hover {
+      background-color: #17a34a;
+    }
+
+    /* Esconde conteúdo principal até ID ser inserido */
+    .hidden {
+      display: none;
+    }
+
   </style>
 </head>
 <body>
-  <div class="poster-container">
-    <img src="" alt="Poster do Filme" />
-    <div class="overlay">
-      <h1>Carregando...</h1>
-      <div class="info"></div>
-      <div class="rating"></div>
+  <!-- Caixa de diálogo para inserir ID do filme -->
+  <div id="input-dialog">
+    <label for="movie-id-input" style="font-size:1.2em; color:#ccc; margin-bottom:5px;">Digite o ID do filme:</label>
+    <input type="number" id="movie-id-input" placeholder="Ex: 299536" />
+    <button id="load-movie-btn">Carregar Filme</button>
+  </div>
+
+  <div id="main-content" class="hidden">
+    <div class="poster-container">
+      <img src="" alt="Poster do Filme" />
+      <div class="overlay">
+        <h1>Carregando...</h1>
+        <div class="info"></div>
+        <div class="rating"></div>
+      </div>
+    </div>
+
+    <div class="description">Carregando descrição...</div>
+
+    <div class="section">
+      <h2>Elenco</h2>
+      <div class="actors"></div>
+    </div>
+
+    <div class="section">
+      <h2>Filmes Similares</h2>
+      <div class="movies"></div>
+    </div>
+
+    <div class="buttons">
+      <button class="btn btn-trailer">TRAILER</button>
+      <button class="btn btn-play">ASSISTIR AGORA</button>
     </div>
   </div>
 
-  <div class="description">Carregando descrição...</div>
-
-  <div class="section">
-    <h2>Elenco</h2>
-    <div class="actors"></div>
+  <!-- Modal Trailer -->
+  <div id="trailer-modal" class="modal" aria-hidden="true">
+    <button class="close-btn" id="close-trailer" aria-label="Fechar trailer">&times;</button>
+    <iframe src="" allow="autoplay; encrypted-media" allowfullscreen sandbox="allow-same-origin allow-scripts allow-presentation"></iframe>
   </div>
 
-  <div class="section">
-    <h2>Filmes Similares</h2>
-    <div class="movies"></div>
-  </div>
-
-  <div class="buttons">
-    <button class="btn btn-trailer">TRAILER</button>
-    <button class="btn btn-play">ASSISTIR AGORA</button>
-  </div>
-
-  <!-- Modal Trailer/Assistir Agora -->
-  <div id="trailer-modal" aria-modal="true" role="dialog" aria-label="Player de vídeo">
-    <button id="close-trailer" aria-label="Fechar player">&times;</button>
-    <iframe
-      src=""
-      allow="autoplay; encrypted-media"
-      allowfullscreen
-      sandbox="allow-scripts allow-same-origin"
-      title="Player de vídeo"
-    ></iframe>
+  <!-- Modal Play -->
+  <div id="play-modal" class="modal" aria-hidden="true">
+    <button class="close-btn" id="close-play" aria-label="Fechar player">&times;</button>
+    <iframe src="" allowfullscreen sandbox="allow-same-origin allow-scripts allow-presentation"></iframe>
   </div>
 
   <script>
@@ -253,21 +318,57 @@
     const lang = 'pt-BR';
     const baseUrl = 'https://api.themoviedb.org/3';
 
-    const movieId = 299536; // Vingadores: Guerra Infinita
+    let currentMovieId = null;
+
+    // Elementos
+    const inputDialog = document.getElementById('input-dialog');
+    const movieIdInput = document.getElementById('movie-id-input');
+    const loadMovieBtn = document.getElementById('load-movie-btn');
+    const mainContent = document.getElementById('main-content');
+
+    const posterImg = document.querySelector('.poster-container img');
+    const titleEl = document.querySelector('h1');
+    const infoEl = document.querySelector('.info');
+    const ratingEl = document.querySelector('.rating');
+    const descriptionEl = document.querySelector('.description');
+    const castContainer = document.querySelector('.actors');
+    const similarContainer = document.querySelector('.movies');
+    const trailerBtn = document.querySelector('.btn-trailer');
+    const playBtn = document.querySelector('.btn-play');
 
     const trailerModal = document.getElementById('trailer-modal');
     const trailerIframe = trailerModal.querySelector('iframe');
     const closeTrailerBtn = document.getElementById('close-trailer');
-    const trailerBtn = document.querySelector('.btn-trailer');
-    const playBtn = document.querySelector('.btn-play');
 
-    async function loadMovieDetails() {
+    const playModal = document.getElementById('play-modal');
+    const playIframe = playModal.querySelector('iframe');
+    const closePlayBtn = document.getElementById('close-play');
+
+    function blockRedirect(iframe, originalSrc) {
+      iframe.onload = () => {
+        try {
+          const iframeWindow = iframe.contentWindow;
+          const currentSrc = iframeWindow.location.href;
+          if (currentSrc !== originalSrc) {
+            iframe.src = originalSrc;
+          }
+        } catch (e) {
+          // Cross-origin: ignorar erro esperado
+        }
+      };
+    }
+
+    async function loadMovieDetails(id) {
       try {
+        currentMovieId = id;
+        inputDialog.style.display = 'none';
+        mainContent.classList.remove('hidden');
+
         const [detailsRes, creditsRes, similarRes, videosRes] = await Promise.all([
-          fetch(`${baseUrl}/movie/${movieId}?api_key=${apiKey}&language=${lang}`),
-          fetch(`${baseUrl}/movie/${movieId}/credits?api_key=${apiKey}&language=${lang}`),
-          fetch(`${baseUrl}/movie/${movieId}/similar?api_key=${apiKey}&language=${lang}`),
-          fetch(`${baseUrl}/movie/${movieId}/videos?api_key=${apiKey}&language=${lang}`)
+          fetch(`${baseUrl}/movie/${id}?api_key=${apiKey}&language=${lang}`),
+          fetch(`${baseUrl}/movie/${id}/credits?api_key=${apiKey}&language=${lang}`),
+          fetch(`${baseUrl}/movie/${id}/similar?api_key=${apiKey}&language=${lang}`),
+          fetch(`${baseUrl}/movie/${id}/videos?api_key=${apiKey}&language=${lang}`)
         ]);
 
         if (!detailsRes.ok) throw new Error('Filme não encontrado.');
@@ -277,20 +378,15 @@
         const similar = await similarRes.json();
         const videos = await videosRes.json();
 
-        document.querySelector('h1').textContent = details.title;
-        document.querySelector('.poster-container img').src = `https://image.tmdb.org/t/p/original${details.backdrop_path}`;
+        titleEl.textContent = details.title;
+        posterImg.src = `https://image.tmdb.org/t/p/original${details.backdrop_path}`;
         const genres = details.genres.map((g) => g.name).join(', ');
         const releaseYear = new Date(details.release_date).getFullYear();
-        document.querySelector(
-          '.info'
-        ).textContent = `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}min • ${genres} • ${releaseYear}`;
-        document.querySelector('.rating').textContent = `⭐ ${details.vote_average.toFixed(
-          1
-        )} / ${details.vote_count}`;
-        document.querySelector('.description').textContent = details.overview;
+        infoEl.textContent = `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}min • ${genres} • ${releaseYear}`;
+        ratingEl.textContent = `⭐ ${details.vote_average.toFixed(1)} / ${details.vote_count}`;
+        descriptionEl.textContent = details.overview;
 
         // Elenco
-        const castContainer = document.querySelector('.actors');
         castContainer.innerHTML = '';
         credits.cast.slice(0, 10).forEach((actor) => {
           if (!actor.profile_path) return;
@@ -305,7 +401,6 @@
         });
 
         // Filmes similares
-        const similarContainer = document.querySelector('.movies');
         similarContainer.innerHTML = '';
         similar.results.slice(0, 10).forEach((movie) => {
           if (!movie.poster_path) return;
@@ -328,25 +423,40 @@
             trailerIframe.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
             trailerModal.classList.add('active');
             document.body.style.overflow = 'hidden';
+            blockRedirect(trailerIframe, trailerIframe.src);
           };
         } else {
           trailerBtn.disabled = true;
           trailerBtn.textContent = 'Trailer não disponível';
+          trailerBtn.onclick = null;
         }
 
         // Configura botão assistir agora
+        playBtn.disabled = false;
+        playBtn.textContent = 'ASSISTIR AGORA';
         playBtn.onclick = () => {
-          trailerIframe.src = `https://embedder.net/e/${movieId}`;
-          trailerModal.classList.add('active');
+          playIframe.src = `https://embedder.net/e/${currentMovieId}`;
+          playModal.classList.add('active');
           document.body.style.overflow = 'hidden';
-          // Garante sandbox mesmo que já tenha sido setado no iframe
-          trailerIframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+          blockRedirect(playIframe, playIframe.src);
         };
+
       } catch (error) {
+        alert('Erro ao carregar dados do filme. Verifique o ID e tente novamente.');
+        inputDialog.style.display = 'flex';
+        mainContent.classList.add('hidden');
         console.error(error);
-        alert('Erro ao carregar dados do filme.');
       }
     }
+
+    loadMovieBtn.onclick = () => {
+      const id = movieIdInput.value.trim();
+      if (id) {
+        loadMovieDetails(id);
+      } else {
+        alert('Por favor, digite um ID válido.');
+      }
+    };
 
     closeTrailerBtn.onclick = () => {
       trailerModal.classList.remove('active');
@@ -354,14 +464,20 @@
       document.body.style.overflow = '';
     };
 
-    // Fecha modal ao clicar fora do iframe
     trailerModal.onclick = (e) => {
-      if (e.target === trailerModal) {
-        closeTrailerBtn.onclick();
-      }
+      if (e.target === trailerModal) closeTrailerBtn.onclick();
     };
 
-    loadMovieDetails();
+    closePlayBtn.onclick = () => {
+      playModal.classList.remove('active');
+      playIframe.src = '';
+      document.body.style.overflow = '';
+    };
+
+    playModal.onclick = (e) => {
+      if (e.target === playModal) closePlayBtn.onclick();
+    };
+
   </script>
 </body>
 </html>
