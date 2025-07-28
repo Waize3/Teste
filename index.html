@@ -452,9 +452,16 @@
   <div id="player-modal">
     <button class="close-btn" onclick="closeModal('player-modal')">&times;</button>
     <div id="player-content" style="width: calc(100vw - 10px); max-width: calc(100vw - 10px); max-height: calc(100vh - 10px); overflow-y: auto; z-index: 9999;"></div>
-    <iframe sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-presentation" allow="fullscreen; picture-in-picture" allowfullscreen></iframe>
+    <iframe sandbox="allow-same-origin allow-scripts allow-presentation" allow="fullscreen; picture-in-picture" allowfullscreen></iframe>
   </div>
   <script>
+    // Bloquear redirecionamentos na janela pai
+    window.location = Object.create(null);
+    const originalOpen = window.open;
+    window.open = function () {
+      return null;
+    };
+
     const apiKey = '6360eb433f3020d94a5de4f0fb52c720';
     const lang = 'pt-BR';
     const baseUrl = 'https://api.themoviedb.org/3';
@@ -735,6 +742,19 @@
 
       modal.classList.add('active');
     }
+
+    // Monitorar mudanças no src do iframe para bloquear redirecionamentos
+    const iframe = document.querySelector('#player-modal iframe');
+    new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'src') {
+          const newSrc = iframe.getAttribute('src');
+          if (newSrc && !newSrc.includes('embedder.net')) {
+            iframe.src = '';
+          }
+        }
+      });
+    }).observe(iframe, { attributes: true });
   </script>
 </body>
 </html>
