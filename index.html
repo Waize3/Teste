@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="frame-src 'self' https://embedder.net https://www.youtube.com;">
   <title>Filme/Série</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
-
     * {
       margin: 0;
       padding: 0;
@@ -145,7 +145,8 @@
       display: none;
     }
 
-    .actor, .movie {
+    .actor,
+    .movie {
       flex: 0 0 auto;
       text-align: center;
     }
@@ -162,7 +163,8 @@
       margin-bottom: 5px;
     }
 
-    .actor div, .movie div {
+    .actor div,
+    .movie div {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -214,7 +216,7 @@
       height: 100vh;
       background: #21232d;
       display: none;
-      justify-content: center;
+      justify-content: center-top;
       align-items: flex-start;
       z-index: 9999;
       flex-direction: column;
@@ -290,7 +292,7 @@
       background-color: #2f313e;
       border-radius: 5px;
       padding: 8px 10px;
-      max-width: 60%;
+      max-height: 150px;
     }
 
     .search-container input {
@@ -299,7 +301,8 @@
       color: white;
       outline: none;
       width: 100%;
-      font-size: 14px;
+      font-size: 16px;
+      margin-left: 35px;
     }
 
     .search-container i {
@@ -307,27 +310,15 @@
       margin-left: 8px;
     }
 
-    .close-icon {
-      color: #ccc;
-      font-size: 1.2rem;
-      margin-right: 8px;
-      cursor: pointer;
-      z-index: 10000;
-    }
-
-    .close-icon:hover {
-      color: #fff;
-    }
-
     .season-container {
-      margin-left: 10px;
+      margin-left: 5px; /* Reduzido de 10px para 5px */
     }
 
     #season-select {
       background-color: #2f313e;
       color: white;
       border: none;
-      padding: 10px;
+      padding: 8px;
       border-radius: 4px;
       font-size: 14px;
       cursor: pointer;
@@ -455,17 +446,9 @@
     <iframe sandbox="allow-same-origin allow-scripts allow-presentation" allow="fullscreen; picture-in-picture" allowfullscreen></iframe>
   </div>
   <script>
-    // Bloquear redirecionamentos na janela pai
-    window.location = Object.create(null);
-    const originalOpen = window.open;
-    window.open = function () {
-      return null;
-    };
-
     const apiKey = '6360eb433f3020d94a5de4f0fb52c720';
     const lang = 'pt-BR';
     const baseUrl = 'https://api.themoviedb.org/3';
-
     let movieId = null;
     let mediaType = 'movie';
 
@@ -566,7 +549,6 @@
             showTVSeasons(details);
           }
         };
-
       } catch (error) {
         alert('Erro ao carregar dados. Verifique o ID e tente novamente.');
         location.reload();
@@ -586,15 +568,6 @@
 
       closeBtn.style.display = 'flex';
 
-      // Tentar ativar fullscreen após clique do usuário
-      if (iframe.requestFullscreen) {
-        iframe.requestFullscreen();
-      } else if (iframe.webkitRequestFullscreen) {
-        iframe.webkitRequestFullscreen();
-      } else if (iframe.msRequestFullscreen) {
-        iframe.msRequestFullscreen();
-      }
-
       modal.classList.add('active');
     }
 
@@ -613,10 +586,6 @@
       const topBar = document.createElement('div');
       topBar.className = 'top-bar';
 
-      const closeIcon = document.createElement('i');
-      closeIcon.className = 'fas fa-times close-icon';
-      closeIcon.onclick = () => closeModal('player-modal');
-
       const searchContainer = document.createElement('div');
       searchContainer.className = 'search-container';
       const searchInput = document.createElement('input');
@@ -633,7 +602,6 @@
       seasonSelect.id = 'season-select';
 
       seasonContainer.appendChild(seasonSelect);
-      topBar.appendChild(closeIcon);
       topBar.appendChild(searchContainer);
       topBar.appendChild(seasonContainer);
       playerContent.appendChild(topBar);
@@ -693,16 +661,10 @@
             iframe.style.display = 'block';
             iframe.classList.add('active');
             iframe.src = `https://embedder.net/e/series?tmdb=${details.id}&sea=${seasonNumber}&epi=${episode.episode_number}`;
+
             closeBtn.style.display = 'flex';
 
-            // Tentar ativar fullscreen após clique do usuário
-            if (iframe.requestFullscreen) {
-              iframe.requestFullscreen();
-            } else if (iframe.webkitRequestFullscreen) {
-              iframe.webkitRequestFullscreen();
-            } else if (iframe.msRequestFullscreen) {
-              iframe.msRequestFullscreen();
-            }
+            modal.classList.add('active');
           });
           episodeList.appendChild(episodeDiv);
         });
@@ -742,19 +704,6 @@
 
       modal.classList.add('active');
     }
-
-    // Monitorar mudanças no src do iframe para bloquear redirecionamentos
-    const iframe = document.querySelector('#player-modal iframe');
-    new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === 'src') {
-          const newSrc = iframe.getAttribute('src');
-          if (newSrc && !newSrc.includes('embedder.net')) {
-            iframe.src = '';
-          }
-        }
-      });
-    }).observe(iframe, { attributes: true });
   </script>
 </body>
 </html>
