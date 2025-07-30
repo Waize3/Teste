@@ -21,6 +21,7 @@
     }
 
     #id-dialog {
+      position: relative; /* Adicionado para posicionamento absoluto do botão de busca */
       position: fixed;
       top: 50%;
       left: 50%;
@@ -35,6 +36,22 @@
       display: flex;
       flex-direction: column;
       gap: 15px;
+    }
+
+    .search-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .search-btn:hover {
+      color: #1db954;
     }
 
     #id-dialog label {
@@ -72,6 +89,29 @@
 
     #main-content {
       display: none;
+    }
+
+    .add-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      font-size: 1.5rem;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.5);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10000;
+      transition: background 0.3s ease;
+    }
+
+    .add-btn:hover {
+      background: rgba(0, 0, 0, 0.7);
     }
 
     .poster-container {
@@ -203,7 +243,7 @@
     }
 
     .btn-play {
-      background-color: #1db954;
+      background: linear-gradient(90deg, #1BBCAB, #0087B5);
       color: #fff;
     }
 
@@ -228,6 +268,18 @@
     #trailer-modal.active,
     #player-modal.active {
       display: flex;
+    }
+
+    #trailer-modal iframe {
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      background: #000;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 9998;
+      display: block;
     }
 
     #player-modal iframe {
@@ -311,7 +363,7 @@
     }
 
     .season-container {
-      margin-left: 5px; /* Reduzido de 10px para 5px */
+      margin-left: 5px;
     }
 
     #season-select {
@@ -350,7 +402,7 @@
     }
 
     .episode img {
-      width: 100px;
+      width: 120px;
       height: 75px;
       object-fit: cover;
       border-radius: 4px;
@@ -398,6 +450,9 @@
 </head>
 <body>
   <div id="id-dialog">
+    <button class="search-btn" aria-label="Buscar no TMDB">
+      <i class="fas fa-search"></i>
+    </button>
     <label for="movieId">Digite o ID:</label>
     <input type="number" id="movieId" placeholder="Ex: 1399 (GOT)" />
     <fieldset style="border: none; display: flex; gap: 15px; align-items: center;">
@@ -414,6 +469,9 @@
     <button id="load-button">Carregar</button>
   </div>
   <div id="main-content">
+    <button class="add-btn" aria-label="Nova busca" onclick="resetToDialog()">
+      <i class="fas fa-plus"></i>
+    </button>
     <div class="poster-container">
       <img src="" alt="Poster" />
       <div class="overlay">
@@ -452,6 +510,11 @@
     let movieId = null;
     let mediaType = 'movie';
 
+    // Adiciona evento ao botão de busca
+    document.querySelector('.search-btn').addEventListener('click', () => {
+      window.open('https://www.themoviedb.org/search?query=', '_blank');
+    });
+
     function start() {
       const input = document.getElementById('movieId').value;
       const typeInput = document.querySelector('input[name="mediaType"]:checked');
@@ -464,10 +527,28 @@
 
       document.getElementById('id-dialog').style.display = 'none';
       document.getElementById('main-content').style.display = 'block';
+      document.querySelector('.add-btn').style.display = 'flex';
       loadMovieDetails();
     }
 
     document.getElementById('load-button').addEventListener('click', start);
+
+    function resetToDialog() {
+      document.getElementById('main-content').style.display = 'none';
+      document.getElementById('id-dialog').style.display = 'flex';
+      document.getElementById('movieId').value = '';
+      document.querySelector('input[name="mediaType"][value="movie"]').checked = true;
+      document.querySelector('.add-btn').style.display = 'none';
+      closeModal('trailer-modal');
+      closeModal('player-modal');
+      document.querySelector('h1').textContent = '';
+      document.querySelector('.poster-container img').src = '';
+      document.querySelector('.info').textContent = '';
+      document.querySelector('.rating').textContent = '';
+      document.querySelector('.description').textContent = '';
+      document.querySelector('.actors').innerHTML = '';
+      document.querySelector('.movies').innerHTML = '';
+    }
 
     function closeModal(modalId) {
       const modal = document.getElementById(modalId);
@@ -475,11 +556,16 @@
       const iframe = modal.querySelector('iframe');
       if (iframe) {
         iframe.src = '';
-        iframe.classList.remove('active');
-        iframe.style.display = 'none';
+        if (modalId === 'trailer-modal') {
+          iframe.style.display = 'block';
+        } else {
+          iframe.style.display = 'none';
+          iframe.classList.remove('active');
+        }
       }
       const content = modal.querySelector('#player-content');
       if (content) content.style.display = 'block';
+      document.querySelector('.add-btn').style.display = 'flex';
     }
 
     async function loadMovieDetails() {
@@ -490,6 +576,10 @@
           fetch(`${baseUrl}/${mediaType}/${movieId}/similar?api_key=${apiKey}&language=${lang}`),
           fetch(`${baseUrl}/${mediaType}/${movieId}/videos?api_key=${apiKey}&language=${lang}`)
         ]);
+
+        if (!detailsRes.ok || !creditsRes.ok || !similarRes.ok || !videosRes.ok) {
+          throw new Error('Erro ao carregar dados da API');
+        }
 
         const details = await detailsRes.json();
         const credits = await creditsRes.json();
@@ -510,7 +600,7 @@
           if (!actor.profile_path) return;
           castContainer.innerHTML += `
             <div class="actor">
-              <img src="https://image.tmdb.org/t/p/w185${actor.profile_path}" alt="${actor.name}" />
+              <img src="https://image.tmdb.org/t/p/w185${actor.profile_path}" alt="Foto de ${actor.name}" />
               <div>${actor.name.length > 20 ? actor.name.slice(0, 17) + '...' : actor.name}</div>
             </div>`;
         });
@@ -535,13 +625,19 @@
           trailerBtn.onclick = () => {
             const modal = document.getElementById('trailer-modal');
             const iframe = modal.querySelector('iframe');
+            iframe.style.display = 'block';
             iframe.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1&controls=1`;
             modal.classList.add('active');
+            document.querySelector('.add-btn').style.display = 'none';
           };
         } else {
           trailerBtn.disabled = true;
         }
 
+        playBtn.textContent = 'ASSISTIR AGORA';
+        playBtn.disabled = false;
+        playBtn.style.background = 'linear-gradient(90deg, #1BBCAB, #0087B5)';
+        playBtn.style.cursor = 'pointer';
         playBtn.onclick = () => {
           if (mediaType === 'movie') {
             showMoviePlayer(details.id);
@@ -551,7 +647,7 @@
         };
       } catch (error) {
         alert('Erro ao carregar dados. Verifique o ID e tente novamente.');
-        location.reload();
+        resetToDialog();
       }
     }
 
@@ -567,6 +663,7 @@
       iframe.src = `https://embedder.net/e/movie?id=${id}`;
 
       closeBtn.style.display = 'flex';
+      document.querySelector('.add-btn').style.display = 'none';
 
       modal.classList.add('active');
     }
@@ -582,6 +679,7 @@
       iframe.style.display = 'none';
       playerContent.style.display = 'block';
       closeBtn.style.display = 'flex';
+      document.querySelector('.add-btn').style.display = 'none';
 
       const topBar = document.createElement('div');
       topBar.className = 'top-bar';
@@ -661,9 +759,8 @@
             iframe.style.display = 'block';
             iframe.classList.add('active');
             iframe.src = `https://embedder.net/e/series?tmdb=${details.id}&sea=${seasonNumber}&epi=${episode.episode_number}`;
-
             closeBtn.style.display = 'flex';
-
+            document.querySelector('.add-btn').style.display = 'none';
             modal.classList.add('active');
           });
           episodeList.appendChild(episodeDiv);
@@ -681,6 +778,7 @@
           iframe.classList.remove('active');
           iframe.src = '';
           closeBtn.style.display = 'flex';
+          document.querySelector('.add-btn').style.display = 'none';
         }
       }
 
