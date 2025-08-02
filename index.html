@@ -20,8 +20,7 @@
       color: #fff;
     }
 
-    #id-dialog {
-      position: relative; /* Adicionado para posicionamento absoluto do botão de busca */
+    #auth-dialog, #id-dialog {
       position: fixed;
       top: 50%;
       left: 50%;
@@ -36,6 +35,14 @@
       display: flex;
       flex-direction: column;
       gap: 15px;
+    }
+
+    #auth-dialog {
+      display: flex;
+    }
+
+    #id-dialog {
+      display: none;
     }
 
     .search-btn {
@@ -54,12 +61,12 @@
       color: #1db954;
     }
 
-    #id-dialog label {
+    #auth-dialog label, #id-dialog label {
       font-size: 1.2em;
       color: #ccc;
     }
 
-    #id-dialog input[type="number"] {
+    #auth-dialog input[type="text"], #id-dialog input[type="number"] {
       padding: 10px 15px;
       font-size: 1.1em;
       border-radius: 8px;
@@ -71,7 +78,7 @@
       letter-spacing: 0.03em;
     }
 
-    #id-dialog button {
+    #auth-dialog button, #id-dialog button {
       padding: 12px;
       font-size: 1em;
       border-radius: 8px;
@@ -83,7 +90,7 @@
       transition: background-color 0.3s ease;
     }
 
-    #id-dialog button:hover {
+    #auth-dialog button:hover, #id-dialog button:hover {
       background-color: #17a34a;
     }
 
@@ -91,17 +98,14 @@
       display: none;
     }
 
-    .add-btn {
+    .add-btn, .favorites-btn {
       position: fixed;
       top: 10px;
-      left: 10px;
       font-size: 1.5rem;
       color: #fff;
       background: rgba(0, 0, 0, 0.5);
       border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -110,7 +114,23 @@
       transition: background 0.3s ease;
     }
 
-    .add-btn:hover {
+    .add-btn {
+      left: 10px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .favorites-btn {
+      left: 60px;
+      width: 80px;
+      height: 40px;
+      padding: 8px 12px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .add-btn:hover, .favorites-btn:hover {
       background: rgba(0, 0, 0, 0.7);
     }
 
@@ -224,31 +244,53 @@
 
     .buttons {
       display: flex;
-      gap: 15px;
-      margin: 20px;
+      gap: 8px;
+      margin: 20px 0;
+      width: 100%;
+      padding: 0 10px;
     }
 
     .btn {
-      flex: 1;
       padding: 12px;
       font-size: 1rem;
       border-radius: 8px;
       border: none;
       cursor: pointer;
+      text-align: center;
+      flex: 1;
+    }
+
+    .btn-favorite {
+      flex: 0 0 50px;
+      background-color: #333;
+      color: #fff;
+      transition: color 0.3s ease, background-color 0.3s ease;
+    }
+
+    .btn-favorite.favorited {
+      color: #e74c3c;
+      background-color: #444;
+    }
+
+    .btn-favorite:hover {
+      background-color: #444;
     }
 
     .btn-trailer {
+      flex: 1;
       background-color: #333;
       color: #fff;
     }
 
     .btn-play {
+      flex: 2;
       background: linear-gradient(90deg, #1BBCAB, #0087B5);
       color: #fff;
     }
 
     #trailer-modal,
-    #player-modal {
+    #player-modal,
+    #favorites-modal {
       position: fixed;
       top: 0;
       left: 0;
@@ -256,7 +298,7 @@
       height: 100vh;
       background: #21232d;
       display: none;
-      justify-content: center-top;
+      justify-content: center;
       align-items: flex-start;
       z-index: 9999;
       flex-direction: column;
@@ -266,7 +308,8 @@
     }
 
     #trailer-modal.active,
-    #player-modal.active {
+    #player-modal.active,
+    #favorites-modal.active {
       display: flex;
     }
 
@@ -323,6 +366,87 @@
 
     .close-btn:hover {
       background: rgba(0, 0, 0, 0.7);
+    }
+
+    #favorites-content {
+      width: calc(100vw - 10px);
+      max-width: calc(100vw - 10px);
+      max-height: calc(100vh - 10px);
+      overflow-y: auto;
+      z-index: 9999;
+      padding: 20px;
+    }
+
+    .favorites-search-container {
+      display: flex;
+      align-items: center;
+      background-color: #2f313e;
+      border-radius: 5px;
+      padding: 8px 10px;
+      margin-bottom: 15px;
+    }
+
+    .favorites-search-container input {
+      background: none;
+      border: none;
+      color: white;
+      outline: none;
+      width: 100%;
+      font-size: 16px;
+      padding-left: 10px;
+    }
+
+    .favorites-search-container i {
+      color: #aaa;
+    }
+
+    .favorite-item {
+      display: flex;
+      align-items: center;
+      background-color: #2a2c38;
+      margin-bottom: 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      padding: 10px;
+    }
+
+    .favorite-item img {
+      width: 80px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-right: 15px;
+    }
+
+    .favorite-item-content {
+      flex: 1;
+    }
+
+    .favorite-item-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #ffffff;
+      margin-bottom: 5px;
+    }
+
+    .favorite-item-type {
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+
+    .favorite-item-remove {
+      background: #e74c3c;
+      border: none;
+      color: #fff;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.3s ease;
+    }
+
+    .favorite-item-remove:hover {
+      background: #c0392b;
     }
 
     .top-bar {
@@ -449,6 +573,11 @@
   </style>
 </head>
 <body>
+  <div id="auth-dialog">
+    <label for="accessCode">Digite o Código de Acesso:</label>
+    <input type="text" id="accessCode" placeholder="Ex: ABC123" />
+    <button id="auth-button">Validar</button>
+  </div>
   <div id="id-dialog">
     <button class="search-btn" aria-label="Buscar no TMDB">
       <i class="fas fa-search"></i>
@@ -472,6 +601,7 @@
     <button class="add-btn" aria-label="Nova busca" onclick="resetToDialog()">
       <i class="fas fa-plus"></i>
     </button>
+    <button class="favorites-btn" onclick="showFavoritesModal()">Favoritos</button>
     <div class="poster-container">
       <img src="" alt="Poster" />
       <div class="overlay">
@@ -490,6 +620,9 @@
       <div class="movies"></div>
     </div>
     <div class="buttons">
+      <button class="btn btn-favorite" aria-label="Favoritar">
+        <i class="far fa-heart"></i>
+      </button>
       <button class="btn btn-trailer">TRAILER</button>
       <button class="btn btn-play">ASSISTIR AGORA</button>
     </div>
@@ -503,6 +636,10 @@
     <div id="player-content" style="width: calc(100vw - 10px); max-width: calc(100vw - 10px); max-height: calc(100vh - 10px); overflow-y: auto; z-index: 9999;"></div>
     <iframe sandbox="allow-same-origin allow-scripts allow-presentation" allow="fullscreen; picture-in-picture" allowfullscreen></iframe>
   </div>
+  <div id="favorites-modal">
+    <button class="close-btn" onclick="closeModal('favorites-modal')">&times;</button>
+    <div id="favorites-content"></div>
+  </div>
   <script>
     const apiKey = '6360eb433f3020d94a5de4f0fb52c720';
     const lang = 'pt-BR';
@@ -510,10 +647,161 @@
     let movieId = null;
     let mediaType = 'movie';
 
+    // Função para validar o código de acesso
+    async function validateAccessCode() {
+      const accessCode = document.getElementById('accessCode').value.trim();
+      if (!accessCode) {
+        alert('Por favor, insira um código de acesso.');
+        return;
+      }
+
+      try {
+        // Carrega o arquivo codes.json
+        const response = await fetch('codes.json');
+        if (!response.ok) {
+          throw new Error('Erro ao carregar os códigos.');
+        }
+        const codes = await response.json();
+
+        // Verifica se o código existe e não está usado
+        const codeEntry = codes.find(entry => entry.code === accessCode);
+        if (!codeEntry) {
+          alert('Código inválido.');
+          return;
+        }
+
+        if (codeEntry.used) {
+          alert('Este código já foi utilizado.');
+          return;
+        }
+
+        // Esconde o diálogo de autenticação e mostra o diálogo de ID
+        document.getElementById('auth-dialog').style.display = 'none';
+        document.getElementById('id-dialog').style.display = 'flex';
+      } catch (error) {
+        console.error('Erro ao validar código:', error);
+        alert('Erro ao validar código. Tente novamente.');
+      }
+    }
+
+    document.getElementById('auth-button').addEventListener('click', validateAccessCode);
+
     // Adiciona evento ao botão de busca
     document.querySelector('.search-btn').addEventListener('click', () => {
       window.open('https://www.themoviedb.org/search?query=', '_blank');
     });
+
+    // Funções para gerenciar favoritos
+    function getFavorites() {
+      return JSON.parse(localStorage.getItem('favorites') || '[]');
+    }
+
+    function saveFavorites(favorites) {
+      localStorage.setItem('favorites', JSON.stringify(favorites));
+    }
+
+    function isFavorited(id, type) {
+      const favorites = getFavorites();
+      return favorites.some(fav => fav.id == id && fav.mediaType == type);
+    }
+
+    function toggleFavorite(id, type) {
+      const favorites = getFavorites();
+      if (isFavorited(id, type)) {
+        const updatedFavorites = favorites.filter(fav => !(fav.id == id && fav.mediaType == type));
+        saveFavorites(updatedFavorites);
+      } else {
+        favorites.push({ id, mediaType: type });
+        saveFavorites(favorites);
+      }
+      updateFavoriteButton();
+    }
+
+    function updateFavoriteButton() {
+      const favoriteBtn = document.querySelector('.btn-favorite');
+      if (isFavorited(movieId, mediaType)) {
+        favoriteBtn.classList.add('favorited');
+        favoriteBtn.querySelector('i').classList.remove('far');
+        favoriteBtn.querySelector('i').classList.add('fas');
+        favoriteBtn.setAttribute('aria-label', 'Desfavoritar');
+      } else {
+        favoriteBtn.classList.remove('favorited');
+        favoriteBtn.querySelector('i').classList.remove('fas');
+        favoriteBtn.querySelector('i').classList.add('far');
+        favoriteBtn.setAttribute('aria-label', 'Favoritar');
+      }
+    }
+
+    async function showFavoritesModal() {
+      const modal = document.getElementById('favorites-modal');
+      const content = document.getElementById('favorites-content');
+      content.innerHTML = `
+        <h2 style="padding: 10px;">Favoritos</h2>
+        <div class="favorites-search-container">
+          <i class="fas fa-search"></i>
+          <input type="text" id="favorites-search" placeholder="Procurar favoritos...">
+        </div>
+        <div id="favorites-list"></div>
+      `;
+      const favoritesList = content.querySelector('#favorites-list');
+      const favorites = getFavorites();
+
+      if (favorites.length === 0) {
+        favoritesList.innerHTML = '<p style="padding: 10px;">Nenhum favorito adicionado.</p>';
+      } else {
+        for (const fav of favorites) {
+          try {
+            const res = await fetch(`${baseUrl}/${fav.mediaType}/${fav.id}?api_key=${apiKey}&language=${lang}`);
+            if (!res.ok) continue;
+            const data = await res.json();
+            const item = document.createElement('div');
+            item.className = 'favorite-item';
+            item.dataset.title = (data.title || data.name).toLowerCase();
+            item.innerHTML = `
+              <img src="${data.poster_path ? `https://image.tmdb.org/t/p/w200${data.poster_path}` : 'https://via.placeholder.com/80x120'}" alt="${data.title || data.name}">
+              <div class="favorite-item-content">
+                <div class="favorite-item-title">${data.title || data.name}</div>
+                <div class="favorite-item-type">${fav.mediaType === 'movie' ? 'Filme' : 'Série'}</div>
+              </div>
+              <button class="favorite-item-remove">Remover</button>
+            `;
+            item.addEventListener('click', (e) => {
+              if (e.target.classList.contains('favorite-item-remove')) {
+                toggleFavorite(fav.id, fav.mediaType);
+                showFavoritesModal();
+                return;
+              }
+              movieId = fav.id;
+              mediaType = fav.mediaType;
+              document.getElementById('id-dialog').style.display = 'none';
+              document.getElementById('main-content').style.display = 'block';
+              document.querySelector('.add-btn').style.display = 'flex';
+              document.querySelector('.favorites-btn').style.display = 'flex';
+              loadMovieDetails();
+              modal.classList.remove('active');
+            });
+            favoritesList.appendChild(item);
+          } catch (error) {
+            console.error('Erro ao carregar favorito:', error);
+          }
+        }
+      }
+
+      // Adiciona funcionalidade de busca
+      const searchInput = content.querySelector('#favorites-search');
+      searchInput.addEventListener('input', () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const items = favoritesList.querySelectorAll('.favorite-item');
+        items.forEach(item => {
+          const title = item.dataset.title;
+          item.style.display = title.includes(searchTerm) ? 'flex' : 'none';
+        });
+      });
+
+      modal.classList.add('active');
+      document.querySelector('.add-btn').style.display = 'none';
+      document.querySelector('.favorites-btn').style.display = 'none';
+    }
 
     function start() {
       const input = document.getElementById('movieId').value;
@@ -528,6 +816,7 @@
       document.getElementById('id-dialog').style.display = 'none';
       document.getElementById('main-content').style.display = 'block';
       document.querySelector('.add-btn').style.display = 'flex';
+      document.querySelector('.favorites-btn').style.display = 'flex';
       loadMovieDetails();
     }
 
@@ -539,8 +828,10 @@
       document.getElementById('movieId').value = '';
       document.querySelector('input[name="mediaType"][value="movie"]').checked = true;
       document.querySelector('.add-btn').style.display = 'none';
+      document.querySelector('.favorites-btn').style.display = 'none';
       closeModal('trailer-modal');
       closeModal('player-modal');
+      closeModal('favorites-modal');
       document.querySelector('h1').textContent = '';
       document.querySelector('.poster-container img').src = '';
       document.querySelector('.info').textContent = '';
@@ -563,9 +854,10 @@
           iframe.classList.remove('active');
         }
       }
-      const content = modal.querySelector('#player-content');
+      const content = modal.querySelector('#player-content') || modal.querySelector('#favorites-content');
       if (content) content.style.display = 'block';
-      document.querySelector('.add-btn').style.display = 'flex';
+      document.querySelector('.add-btn').style.display = document.getElementById('main-content').style.display === 'block' ? 'flex' : 'none';
+      document.querySelector('.favorites-btn').style.display = document.getElementById('main-content').style.display === 'block' ? 'flex' : 'none';
     }
 
     async function loadMovieDetails() {
@@ -618,6 +910,9 @@
 
         const trailerBtn = document.querySelector('.btn-trailer');
         const playBtn = document.querySelector('.btn-play');
+        const favoriteBtn = document.querySelector('.btn-favorite');
+
+        favoriteBtn.onclick = () => toggleFavorite(movieId, mediaType);
 
         const trailer = videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
         if (trailer) {
@@ -629,6 +924,7 @@
             iframe.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1&controls=1`;
             modal.classList.add('active');
             document.querySelector('.add-btn').style.display = 'none';
+            document.querySelector('.favorites-btn').style.display = 'none';
           };
         } else {
           trailerBtn.disabled = true;
@@ -645,6 +941,8 @@
             showTVSeasons(details);
           }
         };
+
+        updateFavoriteButton();
       } catch (error) {
         alert('Erro ao carregar dados. Verifique o ID e tente novamente.');
         resetToDialog();
@@ -664,6 +962,7 @@
 
       closeBtn.style.display = 'flex';
       document.querySelector('.add-btn').style.display = 'none';
+      document.querySelector('.favorites-btn').style.display = 'none';
 
       modal.classList.add('active');
     }
@@ -680,6 +979,7 @@
       playerContent.style.display = 'block';
       closeBtn.style.display = 'flex';
       document.querySelector('.add-btn').style.display = 'none';
+      document.querySelector('.favorites-btn').style.display = 'none';
 
       const topBar = document.createElement('div');
       topBar.className = 'top-bar';
@@ -761,6 +1061,7 @@
             iframe.src = `https://embedder.net/e/series?tmdb=${details.id}&sea=${seasonNumber}&epi=${episode.episode_number}`;
             closeBtn.style.display = 'flex';
             document.querySelector('.add-btn').style.display = 'none';
+            document.querySelector('.favorites-btn').style.display = 'none';
             modal.classList.add('active');
           });
           episodeList.appendChild(episodeDiv);
@@ -779,6 +1080,7 @@
           iframe.src = '';
           closeBtn.style.display = 'flex';
           document.querySelector('.add-btn').style.display = 'none';
+          document.querySelector('.favorites-btn').style.display = 'none';
         }
       }
 
