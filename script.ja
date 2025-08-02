@@ -1,0 +1,534 @@
+const apiKey = '6360eb433f3020d94a5de4f0fb52c720';
+const lang = 'pt-BR';
+const baseUrl = 'https://api.themoviedb.org/3';
+let movieId = null;
+let mediaType = 'movie';
+
+// Verifica se o código está expirado
+function isCodeExpired(expiration) {
+  if (!expiration) return false; // Se não houver data de expiração, assume não expirado
+  const expirationDate = new Date(expiration);
+  const currentDate = new Date();
+  return currentDate > expirationDate;
+}
+
+// Verifica autenticação e validade do código
+async function checkAuthentication() {
+  const authData = JSON.parse(localStorage.getItem('authData') || '{}');
+  const storedCode = authData.code;
+
+  console.log('Verificando autenticação. Código armazenado:', storedCode);
+
+  if (storedCode) {
+    try {
+      const response = await fetch('codes.json');
+      if (!response.ok) {
+        throw new Error('Erro ao carregar os códigos.');
+      }
+      const codes = await response.json();
+      console.log('Códigos carregados:', codes);
+
+      const codeEntry = codes.find(entry => entry.code === storedCode);
+      if (codeEntry && !codeEntry.used && !isCodeExpired(codeEntry.expiration)) {
+        console.log('Código válido:', storedCode);
+        document.getElementById('auth-dialog').style.display = 'none';
+        document.getElementById('id-dialog').style.display = 'flex';
+        return;
+      } else {
+        console.log('Código inválido, usado ou expirado:', storedCode);
+        localStorage.removeItem('authData');
+      }
+    } catch (error) {
+      console.error('Erro ao verificar autenticação:', error);
+      localStorage.removeItem('authData');
+    }
+  }
+
+  console.log('Mostrando diálogo de autenticação');
+  document.getElementById('auth-dialog').style.display = 'flex';
+  document.getElementById('id-dialog').style.display = 'none';
+}
+
+// Chama a verificação de autenticação ao carregar a página
+window.onload = checkAuthentication;
+
+// Função para validar o código de acesso
+async function validateAccessCode() {
+  const accessCode = document.getElementById('accessCode').value.trim();
+  if (!accessCode) {
+    alert('Por favor, insira um código de acesso.');
+    return;
+  }
+
+  try {
+    const response = await fetch('codes.json');
+    if (!response.ok) {
+      throw new Error('Erro ao carregar os códigos.');
+    }
+    const codes = await response.json();
+
+    const codeEntry = codes.find(entry => entry.code === accessCode);
+    if (!codeEntry) {
+      alert('Código inválido.');
+      return;
+    }
+
+    if (codeEntry.used) {
+      alert('Este código já foi utilizado.');
+      return;
+    }
+
+    if (isCodeExpired(codeEntry.expiration)) {
+      alert('Este código está expirado.');
+      return;
+    }
+
+    // Armazena o código no localStorage
+    localStorage.setItem('authData', JSON.stringify({
+      code: accessCode
+    }));
+
+    // Esconde diálogo de autenticação e mostra diálogo de ID
+    document.getElementById('auth-dialog').style.display = 'none';
+    document.getElementById('id-dialog').style.display = 'flex';
+  } catch (error) {
+    console.error('Erro ao validar código:', error);
+    alert('Erro ao validar código. Tente novamente.');
+  }
+}
+
+document.getElementById('auth-button').addEventListener('click', validateAccessCode);
+
+// Função de logout
+function logout() {
+  localStorage.removeItem('authData');
+  location.reload();
+}
+
+// Adiciona evento ao botão de busca
+document.querySelector('.search-btn').addEventListener('click', () => {
+  window.open('https://www.themoviedb.org/search?query=', '_blank');
+});
+
+// Funções para gerenciar favoritos
+function getFavorites() {
+  return JSON.parse(localStorage.getItem('favorites') || '[]');
+}
+
+function saveFavorites(favorites) {
+  localStorage.setItem('favorites', JSON.stringify(favorites));
+}
+
+function isFavorited(id, type) {
+  const favorites = getFavorites();
+  return favorites.some(fav => fav.id == id && fav.mediaType == type);
+}
+
+function toggleFavorite(id, type) {
+  const favorites = getFavorites();
+  if (isFavorited(id, type)) {
+    const updatedFavorites = favorites.filter(fav => !(fav.id == id && fav.mediaType == type));
+    saveFavorites(updatedFavorites);
+  } else {
+    favorites.push({ id, mediaType: type });
+    saveFavorites(favorites);
+  }
+  updateFavoriteButton();
+}
+
+function updateFavoriteButton() {
+  const favoriteBtn = document.querySelector('.btn-favorite');
+  if (isFavorited(movieId, mediaType)) {
+    favoriteBtn.classList.add('favorited');
+    favoriteBtn.querySelector('i').classList.remove('far');
+    favoriteBtn.querySelector('i').classList.add('fas');
+    favoriteBtn.setAttribute('aria-label', 'Desfavoritar');
+  } else {
+    favoriteBtn.classList.remove('favorited');
+    favoriteBtn.querySelector('i').classList.remove('fas');
+    favoriteBtn.querySelector('i').classList.add('far');
+    favoriteBtn.setAttribute('aria-label', 'Favoritar');
+  }
+}
+
+async function showFavoritesModal() {
+  const modal = document.getElementById('favorites-modal');
+  const content = document.getElementById('favorites-content');
+  content.innerHTML = `
+    <h2 style="padding: 10px;">Favoritos</h2>
+    <div class="favorites-search-container">
+      <i class="fas fa-search"></i>
+      <input type="text" id="favorites-search" placeholder="Procurar favoritos...">
+    </div>
+    <div id="favorites-list"></div>
+  `;
+  const favoritesList = content.querySelector('#favorites-list');
+  const favorites = getFavorites();
+
+  if (favorites.length === 0) {
+    favoritesList.innerHTML = '<p style="padding: 10px;">Nenhum favorito adicionado.</p>';
+  } else {
+    for (const fav of favorites) {
+      try {
+        const res = await fetch(`${baseUrl}/${fav.mediaType}/${fav.id}?api_key=${apiKey}&language=${lang}`);
+        if (!res.ok) continue;
+        const data = await res.json();
+        const item = document.createElement('div');
+        item.className = 'favorite-item';
+        item.dataset.title = (data.title || data.name).toLowerCase();
+        item.innerHTML = `
+          <img src="${data.poster_path ? `https://image.tmdb.org/t/p/w200${data.poster_path}` : 'https://via.placeholder.com/80x120'}" alt="${data.title || data.name}">
+          <div class="favorite-item-content">
+            <div class="favorite-item-title">${data.title || data.name}</div>
+            <div class="favorite-item-type">${fav.mediaType === 'movie' ? 'Filme' : 'Série'}</div>
+          </div>
+          <button class="favorite-item-remove">Remover</button>
+        `;
+        item.addEventListener('click', (e) => {
+          if (e.target.classList.contains('favorite-item-remove')) {
+            toggleFavorite(fav.id, fav.mediaType);
+            showFavoritesModal();
+            return;
+          }
+          movieId = fav.id;
+          mediaType = fav.mediaType;
+          document.getElementById('id-dialog').style.display = 'none';
+          document.getElementById('main-content').style.display = 'block';
+          document.querySelector('.add-btn').style.display = 'flex';
+          document.querySelector('.favorites-btn').style.display = 'flex';
+          document.querySelector('.logout-btn').style.display = 'flex';
+          loadMovieDetails();
+          modal.classList.remove('active');
+        });
+        favoritesList.appendChild(item);
+      } catch (error) {
+        console.error('Erro ao carregar favorito:', error);
+      }
+    }
+  }
+
+  const searchInput = content.querySelector('#favorites-search');
+  searchInput.addEventListener('input', () => {
+    const searchTerm = searchInput.value.toLowerCase();
+    const items = favoritesList.querySelectorAll('.favorite-item');
+    items.forEach(item => {
+      const title = item.dataset.title;
+      item.style.display = title.includes(searchTerm) ? 'flex' : 'none';
+    });
+  });
+
+  modal.classList.add('active');
+  document.querySelector('.add-btn').style.display = 'none';
+  document.querySelector('.favorites-btn').style.display = 'none';
+  document.querySelector('.logout-btn').style.display = 'none';
+}
+
+function start() {
+  const input = document.getElementById('movieId').value;
+  const typeInput = document.querySelector('input[name="mediaType"]:checked');
+  if (!input || !typeInput) {
+    alert('Por favor, preencha o ID e selecione o tipo.');
+    return;
+  }
+  movieId = input;
+  mediaType = typeInput.value;
+
+  document.getElementById('id-dialog').style.display = 'none';
+  document.getElementById('main-content').style.display = 'block';
+  document.querySelector('.add-btn').style.display = 'flex';
+  document.querySelector('.favorites-btn').style.display = 'flex';
+  document.querySelector('.logout-btn').style.display = 'flex';
+  loadMovieDetails();
+}
+
+document.getElementById('load-button').addEventListener('click', start);
+
+function resetToDialog() {
+  document.getElementById('main-content').style.display = 'none';
+  document.getElementById('id-dialog').style.display = 'flex';
+  document.getElementById('movieId').value = '';
+  document.querySelector('input[name="mediaType"][value="movie"]').checked = true;
+  document.querySelector('.add-btn').style.display = 'none';
+  document.querySelector('.favorites-btn').style.display = 'none';
+  document.querySelector('.logout-btn').style.display = 'none';
+  closeModal('trailer-modal');
+  closeModal('player-modal');
+  closeModal('favorites-modal');
+  document.querySelector('h1').textContent = '';
+  document.querySelector('.poster-container img').src = '';
+  document.querySelector('.info').textContent = '';
+  document.querySelector('.rating').textContent = '';
+  document.querySelector('.description').textContent = '';
+  document.querySelector('.actors').innerHTML = '';
+  document.querySelector('.movies').innerHTML = '';
+}
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  modal.classList.remove('active');
+  const iframe = modal.querySelector('iframe');
+  if (iframe) {
+    iframe.src = '';
+    if (modalId === 'trailer-modal') {
+      iframe.style.display = 'block';
+    } else {
+      iframe.style.display = 'none';
+      iframe.classList.remove('active');
+    }
+  }
+  const content = modal.querySelector('#player-content') || modal.querySelector('#favorites-content');
+  if (content) content.style.display = 'block';
+  document.querySelector('.add-btn').style.display = document.getElementById('main-content').style.display === 'block' ? 'flex' : 'none';
+  document.querySelector('.favorites-btn').style.display = document.getElementById('main-content').style.display === 'block' ? 'flex' : 'none';
+  document.querySelector('.logout-btn').style.display = document.getElementById('main-content').style.display === 'block' ? 'flex' : 'none';
+}
+
+async function loadMovieDetails() {
+  try {
+    const [detailsRes, creditsRes, similarRes, videosRes] = await Promise.all([
+      fetch(`${baseUrl}/${mediaType}/${movieId}?api_key=${apiKey}&language=${lang}`),
+      fetch(`${baseUrl}/${mediaType}/${movieId}/credits?api_key=${apiKey}&language=${lang}`),
+      fetch(`${baseUrl}/${mediaType}/${movieId}/similar?api_key=${apiKey}&language=${lang}`),
+      fetch(`${baseUrl}/${mediaType}/${movieId}/videos?api_key=${apiKey}&language=${lang}`)
+    ]);
+
+    if (!detailsRes.ok || !creditsRes.ok || !similarRes.ok || !videosRes.ok) {
+      throw new Error('Erro ao carregar dados da API');
+    }
+
+    const details = await detailsRes.json();
+    const credits = await creditsRes.json();
+    const similar = await similarRes.json();
+    const videos = await videosRes.json();
+
+    document.querySelector('h1').textContent = mediaType === 'movie' ? details.title : details.name;
+    document.querySelector('.poster-container img').src = `https://image.tmdb.org/t/p/original${details.backdrop_path}`;
+    document.querySelector('.info').textContent = mediaType === 'movie'
+      ? `${Math.floor(details.runtime / 60)}h ${details.runtime % 60}min • ${details.genres.map(g => g.name).join(', ')} • ${details.release_date.slice(0, 4)}`
+      : `${details.number_of_seasons} temporada(s) • ${details.genres.map(g => g.name).join(', ')} • ${details.first_air_date.slice(0, 4)}`;
+    document.querySelector('.rating').textContent = `⭐ ${details.vote_average.toFixed(1)} / ${details.vote_count}`;
+    document.querySelector('.description').textContent = details.overview;
+
+    const castContainer = document.querySelector('.actors');
+    castContainer.innerHTML = '';
+    credits.cast.slice(0, 10).forEach(actor => {
+      if (!actor.profile_path) return;
+      castContainer.innerHTML += `
+        <div class="actor">
+          <img src="https://image.tmdb.org/t/p/w185${actor.profile_path}" alt="Foto de ${actor.name}" />
+          <div>${actor.name.length > 20 ? actor.name.slice(0, 17) + '...' : actor.name}</div>
+        </div>`;
+    });
+
+    const similarContainer = document.querySelector('.movies');
+    similarContainer.innerHTML = '';
+    similar.results.slice(0, 10).forEach(movie => {
+      if (!movie.poster_path) return;
+      similarContainer.innerHTML += `
+        <div class="movie">
+          <img src="https://image.tmdb.org/t/p/w300${movie.poster_path}" alt="${movie.title || movie.name}" />
+          <div>${(movie.title || movie.name).slice(0, 17)}...</div>
+        </div>`;
+    });
+
+    const trailerBtn = document.querySelector('.btn-trailer');
+    const playBtn = document.querySelector('.btn-play');
+    const favoriteBtn = document.querySelector('.btn-favorite');
+
+    favoriteBtn.onclick = () => toggleFavorite(movieId, mediaType);
+
+    const trailer = videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+    if (trailer) {
+      trailerBtn.disabled = false;
+      trailerBtn.onclick = () => {
+        const modal = document.getElementById('trailer-modal');
+        const iframe = modal.querySelector('iframe');
+        iframe.style.display = 'block';
+        iframe.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1&controls=1`;
+        modal.classList.add('active');
+        document.querySelector('.add-btn').style.display = 'none';
+        document.querySelector('.favorites-btn').style.display = 'none';
+        document.querySelector('.logout-btn').style.display = 'none';
+      };
+    } else {
+      trailerBtn.disabled = true;
+    }
+
+    playBtn.textContent = 'ASSISTIR AGORA';
+    playBtn.disabled = false;
+    playBtn.style.background = 'linear-gradient(90deg, #1BBCAB, #0087B5)';
+    playBtn.style.cursor = 'pointer';
+    playBtn.onclick = () => {
+      if (mediaType === 'movie') {
+        showMoviePlayer(details.id);
+      } else {
+        showTVSeasons(details);
+      }
+    };
+
+    updateFavoriteButton();
+  } catch (error) {
+    alert('Erro ao carregar dados. Verifique o ID e tente novamente.');
+    resetToDialog();
+  }
+}
+
+function showMoviePlayer(id) {
+  const modal = document.getElementById('player-modal');
+  const iframe = modal.querySelector('iframe');
+  const playerContent = modal.querySelector('#player-content');
+  const closeBtn = modal.querySelector('.close-btn');
+
+  playerContent.style.display = 'none';
+  iframe.style.display = 'block';
+  iframe.classList.add('active');
+  iframe.src = `https://embedder.net/e/movie?id=${id}`;
+
+  closeBtn.style.display = 'flex';
+  document.querySelector('.add-btn').style.display = 'none';
+  document.querySelector('.favorites-btn').style.display = 'none';
+  document.querySelector('.logout-btn').style.display = 'none';
+
+  modal.classList.add('active');
+}
+
+async function showTVSeasons(details) {
+  const modal = document.getElementById('player-modal');
+  const playerContent = modal.querySelector('#player-content');
+  const iframe = modal.querySelector('iframe');
+  const closeBtn = modal.querySelector('.close-btn');
+
+  playerContent.innerHTML = '';
+  iframe.src = '';
+  iframe.style.display = 'none';
+  playerContent.style.display = 'block';
+  closeBtn.style.display = 'flex';
+  document.querySelector('.add-btn').style.display = 'none';
+  document.querySelector('.favorites-btn').style.display = 'none';
+  document.querySelector('.logout-btn').style.display = 'none';
+
+  const topBar = document.createElement('div');
+  topBar.className = 'top-bar';
+
+  const searchContainer = document.createElement('div');
+  searchContainer.className = 'search-container';
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.placeholder = 'Procurar Episódio...';
+  const searchIcon = document.createElement('i');
+  searchIcon.className = 'fas fa-search';
+  searchContainer.appendChild(searchInput);
+  searchContainer.appendChild(searchIcon);
+
+  const seasonContainer = document.createElement('div');
+  seasonContainer.className = 'season-container';
+  const seasonSelect = document.createElement('select');
+  seasonSelect.id = 'season-select';
+
+  seasonContainer.appendChild(seasonSelect);
+  topBar.appendChild(searchContainer);
+  topBar.appendChild(seasonContainer);
+  playerContent.appendChild(topBar);
+
+  const episodeList = document.createElement('div');
+  episodeList.className = 'episode-list';
+  playerContent.appendChild(episodeList);
+
+  const validSeasons = details.seasons.filter(season => season.season_number !== 0);
+  const seasonPromises = validSeasons.map(season =>
+    fetch(`${baseUrl}/tv/${details.id}/season/${season.season_number}?api_key=${apiKey}&language=${lang}`)
+      .then(res => res.json())
+      .then(seasonData => ({ season, seasonData }))
+      .catch(() => ({ season, seasonData: { episodes: [] } }))
+  );
+
+  const seasonsData = await Promise.all(seasonPromises);
+
+  seasonsData.forEach(({ season }) => {
+    const option = document.createElement('option');
+    option.value = season.season_number;
+    option.textContent = `Temporada ${season.season_number}`;
+    seasonSelect.appendChild(option);
+  });
+
+  seasonSelect.addEventListener('change', () => {
+    const seasonNumber = parseInt(seasonSelect.value);
+    const selectedSeason = seasonsData.find(
+      ({ season }) => season.season_number === seasonNumber
+    );
+    if (selectedSeason && selectedSeason.seasonData.episodes.length > 0) {
+      renderEpisodes(selectedSeason.seasonData.episodes, seasonNumber);
+    } else {
+      episodeList.innerHTML = '<p>Não foi possível carregar os episódios.</p>';
+    }
+  });
+
+  function renderEpisodes(episodes, seasonNumber) {
+    episodeList.innerHTML = '';
+    episodes.forEach(episode => {
+      const episodeDiv = document.createElement('div');
+      episodeDiv.className = 'episode';
+      episodeDiv.dataset.title = episode.name.toLowerCase();
+      episodeDiv.innerHTML = `
+        <img src="${episode.still_path ? `https://image.tmdb.org/t/p/w300${episode.still_path}` : 'https://via.placeholder.com/100x75'}" alt="Ep${episode.episode_number}">
+        <div class="episode-content">
+          <div class="episode-number">Episódio ${episode.episode_number}</div>
+          <div class="episode-title">${episode.name}</div>
+          <div class="episode-meta">
+            <span><i class="fas fa-star"></i> ${episode.vote_average ? episode.vote_average.toFixed(1) : 'N/A'}</span>
+            <i class="fas fa-eye"></i>
+          </div>
+        </div>
+      `;
+      episodeDiv.addEventListener('click', () => {
+        playerContent.style.display = 'none';
+        iframe.style.display = 'block';
+        iframe.classList.add('active');
+        iframe.src = `https://embedder.net/e/series?tmdb=${details.id}&sea=${seasonNumber}&epi=${episode.episode_number}`;
+        closeBtn.style.display = 'flex';
+        document.querySelector('.add-btn').style.display = 'none';
+        document.querySelector('.favorites-btn').style.display = 'none';
+        document.querySelector('.logout-btn').style.display = 'none';
+        modal.classList.add('active');
+      });
+      episodeList.appendChild(episodeDiv);
+    });
+  }
+
+  function handleFullscreenChange() {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+      const modal = document.getElementById('player-modal');
+      const iframe = modal.querySelector('iframe');
+      const playerContent = modal.querySelector('#player-content');
+      const closeBtn = modal.querySelector('.close-btn');
+      playerContent.style.display = 'block';
+      iframe.style.display = 'none';
+      iframe.classList.remove('active');
+      iframe.src = '';
+      closeBtn.style.display = 'flex';
+      document.querySelector('.add-btn').style.display = 'none';
+      document.querySelector('.favorites-btn').style.display = 'none';
+      document.querySelector('.logout-btn').style.display = 'none';
+    }
+  }
+
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+  document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+  searchInput.addEventListener('input', () => {
+    const searchTerm = searchInput.value.toLowerCase();
+    const episodes = episodeList.querySelectorAll('.episode');
+    episodes.forEach(episode => {
+      const title = episode.dataset.title;
+      episode.style.display = title.includes(searchTerm) ? 'flex' : 'none';
+    });
+  });
+
+  if (seasonsData.length > 0) {
+    seasonSelect.value = seasonsData[0].season.season_number;
+    renderEpisodes(seasonsData[0].seasonData.episodes, seasonsData[0].season.season_number);
+  }
+
+  modal.classList.add('active');
+}
